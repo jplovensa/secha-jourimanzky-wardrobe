@@ -1,6 +1,6 @@
 # Jourimanzky / SECHA Studio+
 
-An interactive Three.js wardrobe presentation using the main-bay dimensions from **Jourimanzky WIC Revision 07** and the latest supplied layout/entrance image for placement.
+An interactive Three.js wardrobe presentation using the main-bay dimensions from **Jourimanzky WIC Revision 07** and the latest supplied floorplan for placement.
 
 ## Run
 
@@ -32,13 +32,15 @@ server under `/secha-jourimanzky-wardrobe/`, without Vite or an HTML fallback.
 
 ## Presentation
 
-The latest image supersedes the PDF orientation: hanging is on the **left**, the
-four-drawer chest and two shelves are at the **rear-right**, and the full-height
-mirror is on the **right**. A narrow five-level shoe column sits at the rear-left
-elbow, leaving the entrance and main aisle clear. The image is visual reference,
-not a new measured drawing: room dimensions remain 2022 × 2157 × 2610 mm and rails
-remain at 1050 / 2000 mm AFF. Shoe-column and entrance-return geometry are conceptual;
-verify dimensions and installation clearances on site.
+The latest supplied floorplan is the placement authority: hanging on the **right**,
+chest and two shelves at the **rear-left**, full-height mirror on the **left**.
+The retained D shoe rack is on the **entrance return**, x = 806–2022 mm,
+z = 1807–2157 mm: 1216 W × 350 D × 1500 H mm, five levels. The right hanging run
+ends at z = 1750 mm, leaving the specified 57 mm nominal gap before the rack.
+Room dimensions remain 2022 × 2157 × 2610 mm and rails remain at 1050 / 2000 mm AFF.
+The earlier render's reversed orientation and rear-corner shoe column are superseded.
+The low entrance wall is shown only in plan mode so the rack remains visible in 3D; the dashed entrance pocket still
+requires survey and has no invented measured geometry. Verify all dimensions on site.
 
 - Layout, entrance, and plan camera presets; the ceiling appears in entrance mode.
 - PBR teak, oak and walnut options, planar mirror reflections, soft shadows,

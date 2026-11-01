@@ -57,14 +57,18 @@ test('context loss has a recovery action and idle scenes stop redrawing', async 
   await expect(page.getByRole('button', { name: 'Retry showcase' })).toBeVisible();
 });
 
-test('latest layout places hanging left, chest rear-right and mirror right', async ({page,baseURL}) => {
+test('floorplan places D at the entrance return and restores the right-hand L layout', async ({page,baseURL}) => {
   await page.goto(baseURL);
   await page.waitForFunction(()=>window.showcase?.getState().frames>0);
   const layout=await page.evaluate(()=>window.showcase.getState().layout);
-  expect(layout.hangingX).toBeLessThan(.4);
-  expect(layout.chestX).toBeGreaterThan(1.5);
-  expect(layout.mirrorX).toBeGreaterThan(2.01);
-  expect(layout.shoeRackX).toBeLessThan(.25);
+  expect(layout.hangingX).toBeCloseTo(1.722,3);
+  expect(layout.chestX).toBeCloseTo(.472,3);
+  expect(layout.mirrorX).toBeCloseTo(.006,3);
+  const rack=layout.shoeRackBounds;
+  expect(rack.min[0]).toBeCloseTo(.806,3);expect(rack.max[0]).toBeCloseTo(2.022,3);
+  expect(rack.min[2]).toBeCloseTo(1.807,3);expect(rack.max[2]).toBeCloseTo(2.157,3);
+  expect(rack.min[1]).toBeCloseTo(0,3);expect(rack.max[1]).toBeCloseTo(1.5,3);
+  expect(rack.levels).toBe(5);expect(rack.min[2]-1.75).toBeCloseTo(.057,3);
   await page.screenshot({path:'/tmp/wardrobe-layout-new.png'});
   await page.getByRole('button',{name:'Step inside',exact:false}).click();
   await page.waitForTimeout(2200);
