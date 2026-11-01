@@ -10,6 +10,7 @@ if (html.includes('/src/') || !html.includes('./site-assets/')) {
 await mkdir(new URL('site-assets/', root), { recursive: true });
 // Retain previous hashed bundles so already-open pages survive a deployment.
 await cp(new URL('dist/site-assets/', root), new URL('site-assets/', root), { recursive: true });
+await cp(new URL('dist/media/', root), new URL('media/', root), { recursive: true });
 await writeFile(new URL('index.html', root), html);
 await writeFile(new URL('.nojekyll', root), '');
 console.log(`Static Pages entry prepared at ${fileURLToPath(root)}index.html`);

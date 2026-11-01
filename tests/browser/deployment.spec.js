@@ -56,3 +56,33 @@ test('context loss has a recovery action and idle scenes stop redrawing', async 
   await expect(page.locator('#loading')).toContainText('graphics connection was lost');
   await expect(page.getByRole('button', { name: 'Retry showcase' })).toBeVisible();
 });
+
+test('latest layout places hanging left, chest rear-right and mirror right', async ({page,baseURL}) => {
+  await page.goto(baseURL);
+  await page.waitForFunction(()=>window.showcase?.getState().frames>0);
+  const layout=await page.evaluate(()=>window.showcase.getState().layout);
+  expect(layout.hangingX).toBeLessThan(.4);
+  expect(layout.chestX).toBeGreaterThan(1.5);
+  expect(layout.mirrorX).toBeGreaterThan(2.01);
+  expect(layout.shoeRackX).toBeLessThan(.25);
+  await page.screenshot({path:'/tmp/wardrobe-layout-new.png'});
+  await page.getByRole('button',{name:'Step inside',exact:false}).click();
+  await page.waitForTimeout(2200);
+  await page.screenshot({path:'/tmp/wardrobe-entrance-new.png'});
+});
+
+test('supplied film plays, seeks and pauses when closed', async ({page,baseURL}) => {
+  await page.goto(baseURL);
+  const video=page.locator('#closet-film');
+  await video.evaluate(v=>v.muted=true);
+  await page.getByRole('button',{name:'Watch the wardrobe film',exact:false}).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect.poll(()=>video.evaluate(v=>v.currentTime)).toBeGreaterThan(.1);
+  expect(await video.evaluate(v=>v.duration)).toBeGreaterThan(9);
+  await video.evaluate(v=>{v.currentTime=5;});
+  await expect.poll(()=>video.evaluate(v=>v.currentTime)).toBeGreaterThan(5);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(true);
+  await expect(page.locator('#watch-film')).toBeFocused();
+});

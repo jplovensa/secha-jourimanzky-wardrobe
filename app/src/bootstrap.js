@@ -1,3 +1,4 @@
+import './film.js';
 import { showFailure } from './startup.js';
 const viewer = document.querySelector('#viewer');
 viewer.setAttribute('aria-busy', 'true');

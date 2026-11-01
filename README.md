@@ -1,6 +1,6 @@
 # Jourimanzky / SECHA Studio+
 
-An interactive Three.js wardrobe presentation based on the supplied **Jourimanzky WIC Revision 07** drawings (WIC-01–05).
+An interactive Three.js wardrobe presentation using the main-bay dimensions from **Jourimanzky WIC Revision 07** and the latest supplied layout/entrance image for placement.
 
 ## Run
 
@@ -32,14 +32,29 @@ server under `/secha-jourimanzky-wardrobe/`, without Vite or an HTML fallback.
 
 ## Presentation
 
-- Dimensioned 2022 × 2157 × 2610 mm main bay, full left-wall planar mirror, right/rear L rails at 1050 / 2000 mm AFF.
-- Rear-left four-drawer chest with animated 350 mm extensions, two shelves, right upper/low shelves, and the retained five-level entrance shoe rack.
-- Procedural teak grain, physical roughness/metalness materials, environment reflections, soft shadows, day/evening mood, and under-shelf light.
-- Orbit/zoom, interior and plan camera presets, three finishes, dimension summary, and PNG view export.
-- Select an object by clicking. Click a drawer to open/close it. Select an accessory, then drag it or use the inspector arrows; garments slide along their rail. Reset space restores asset placement.
-- Four exploration objectives unlock the Space Curator achievement. Progress lasts for the current page session.
+The latest image supersedes the PDF orientation: hanging is on the **left**, the
+four-drawer chest and two shelves are at the **rear-right**, and the full-height
+mirror is on the **right**. A narrow five-level shoe column sits at the rear-left
+elbow, leaving the entrance and main aisle clear. The image is visual reference,
+not a new measured drawing: room dimensions remain 2022 × 2157 × 2610 mm and rails
+remain at 1050 / 2000 mm AFF. Shoe-column and entrance-return geometry are conceptual;
+verify dimensions and installation clearances on site.
 
-The mirrored wall is visible from inside the room; its back is cut away in the outside presentation. The ceiling and entrance return wall are omitted for visibility. The PDF's dashed entrance pocket has no verified dimensions and is not fabricated. Wood colour is a conceptual TH 356 Baltimore Teak interpretation, not a calibrated manufacturer scan. Oak and walnut are optional conceptual alternatives. Garments and accessories are procedural styling geometry. Asset movement is for staging, without collision or installation-clearance validation. All dimensions remain nominal and need site verification.
+- Layout, entrance, and plan camera presets; the ceiling appears in entrance mode.
+- PBR teak, oak and walnut options, planar mirror reflections, soft shadows,
+  daylight/evening settings and under-shelf lighting.
+- Click a drawer to open/close it. Select accessories, then drag or use the arrows.
+  The optional dressing stool is off initially to match the clear reference aisle.
+- Four exploration objectives, reset placement, and PNG export.
+- **Watch the wardrobe film** opens the supplied 10-second MP4 with native playback,
+  seeking, volume and fullscreen controls. Close or Escape pauses playback and
+  restores focus. Video works independently of WebGL. No autoplay on page load.
+
+Editable media is in `app/public/media/`; `npm run build` includes it in both
+`dist/media/` and the branch-deployable root `media/`. The clip is presentation
+inspiration rather than a live view of the 3D scene. Materials and accessories
+are procedural approximations, not calibrated product scans. Asset staging does
+not perform collision checks.
 
 ## Validation
 
