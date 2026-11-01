@@ -55,3 +55,14 @@ npm run test:e2e
 Browser tests use system Chromium by default (`/usr/bin/chromium`); set `CHROMIUM_PATH` for another installation. They exercise WebGL rendering, drawers, movement controls, all four objectives, finish/light controls, PNG download, and mobile viewport overflow. The browser QA hooks in `window.showcase` only provide scene selection and serializable state; interactions still use the actual UI handlers.
 
 No cloud environment is published by this application or its setup commands.
+
+## Startup and rendering recovery
+
+The loading overlay stays visible until the first successful rendered frame. Failed
+bundle imports, WebGL initialization, graphics context loss, and render-loop errors
+show a retry action. A 20-second loading timeout avoids an indefinite spinner.
+The mirror render target, shadow map, and maximum pixel ratio are bounded, and
+idle scenes skip rendering until controls, camera, assets, or dimensions change.
+
+Production regression tests cover blocked bundles, unavailable WebGL, context loss,
+and idle redraw suppression in addition to the normal interactive workflow.

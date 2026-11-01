@@ -1,3 +1,4 @@
+import { showFailure, showReady } from './startup.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
@@ -10,10 +11,14 @@ $('#quests').innerHTML = QUESTS.map((q,i)=>`<div class="quest" data-quest="${i}"
 function complete(i){completed.add(i);const el=$(`[data-quest="${i}"]`);el.classList.add('done');el.querySelector('span').textContent='✓';$('#progress').style.width=`${completed.size*25}%`;$('#progress-count').textContent=`${completed.size} / 4`;if(completed.size===4)$('#achievement').textContent='✦ Space curator unlocked. Beautifully considered.';}
 let toastTimer;
 function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2400);}
-try { init(); } catch(error){console.error(error);$('#loading').classList.add('error');$('#loading').textContent='This showcase needs WebGL 2. Please enable hardware acceleration and reload in a current browser.';}
+try { init(); } catch(error){console.error(error);window.dispatchEvent(new Event('showcase-failed'));showFailure('The 3D renderer could not start. Enable WebGL 2 / hardware acceleration in a current browser, then retry.');}
 function init(){
 const host=$('#canvas-host');
-const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;host.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;host.appendChild(renderer.domElement);
+let dirty=true;
+const invalidate=()=>{dirty=true;};
+renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();renderer.setAnimationLoop(null);window.dispatchEvent(new Event('showcase-failed'));showFailure('The graphics connection was lost. Close other graphics-heavy tabs and retry the showcase.');});
+document.addEventListener('click',invalidate);document.addEventListener('change',invalidate);
 const scene=new THREE.Scene();scene.background=new THREE.Color('#e6e3d9');const camera=new THREE.PerspectiveCamera(38,1,.03,50);
 const pmrem=new THREE.PMREMGenerator(renderer);const env=pmrem.fromScene(new RoomEnvironment(),.04);scene.environment=env.texture;scene.environmentIntensity=.65;
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(1,1.1,1);controls.maxPolarAngle=Math.PI*.49;controls.minDistance=.4;controls.maxDistance=9;
@@ -31,7 +36,7 @@ for(let z=.5;z<2.2;z+=.5)box(2.022,.001,.002,1.011,.001,z,mat('#afa895'));
 box(2.16,2.61,.07,1.011,1.305,-.035,wall);box(.07,2.61,2.157,2.057,1.305,1.078,wall);
 box(2.022,.055,.015,1.011,.027,.012,wall);box(.015,.055,2.157,2.01,.027,1.078,wall);
 // Full-height left mirror; front and ceiling cut away for the presentation.
-const mirror=new Reflector(new THREE.PlaneGeometry(2.157,2.61),{color:0xc6ccc7,textureWidth:1024,textureHeight:1024,clipBias:.003});mirror.rotation.y=Math.PI/2;mirror.position.set(.006,1.305,1.0785);room.add(mirror);
+const mirror=new Reflector(new THREE.PlaneGeometry(2.157,2.61),{color:0xc6ccc7,textureWidth:512,textureHeight:512,clipBias:.003});mirror.rotation.y=Math.PI/2;mirror.position.set(.006,1.305,1.0785);room.add(mirror);
 rod([.008,0,0],[.008,2.61,0],.009,brass);rod([.008,0,2.157],[.008,2.61,2.157],.009,brass);
 const interactables=[],drawers=[],assets=[];
 function interactive(group,data){group.userData={...data};interactables.push(group);return group;}
@@ -56,19 +61,19 @@ bag(.30,1.78,.125);bag(.67,1.38,.125);
 // Styled towel stacks on chest and a movable upholstered stool in the aisle.
 for(let i=0;i<3;i++)box(.26,.045,.21,.29,.93+i*.045,.19,linen);
 const stool=new THREE.Group();stool.position.set(.83,0,1.2);room.add(stool);const cushion=new THREE.Mesh(new THREE.CylinderGeometry(.22,.23,.16,48),linen);cushion.position.y=.40;cushion.castShadow=true;stool.add(cushion);for(const x of [-.13,.13])for(const z of [-.13,.13])rod([x,.03,z],[x*.85,.35,z*.85],.014,wood,stool);interactive(stool,{kind:'asset',name:'A moment of pause',description:'Upholstered dressing stool. Move it through the main aisle to explore the room.',origin:stool.position.clone()});assets.push(stool);
-const hemi=new THREE.HemisphereLight('#fff6df','#a19c83',1.8);scene.add(hemi);const sun=new THREE.DirectionalLight('#fff4da',2.5);sun.position.set(-2,5,4);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-4;sun.shadow.camera.right=4;sun.shadow.camera.top=4;sun.shadow.camera.bottom=-4;sun.shadow.normalBias=.025;scene.add(sun);
+const hemi=new THREE.HemisphereLight('#fff6df','#a19c83',1.8);scene.add(hemi);const sun=new THREE.DirectionalLight('#fff4da',2.5);sun.position.set(-2,5,4);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-4;sun.shadow.camera.right=4;sun.shadow.camera.top=4;sun.shadow.camera.bottom=-4;sun.shadow.normalBias=.025;scene.add(sun);
 const strip=new THREE.PointLight('#ffda9c',9,4,2);strip.position.set(1.65,2.1,1.15);scene.add(strip);
 // Ground receives shadows beneath the room platform.
 const ground=box(200,.025,200,1,-.15,1,mat('#e1dfd4'));ground.castShadow=false;
 const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let selected=null,dragging=false,down=null,dragPlane=new THREE.Plane(),dragOffset=new THREE.Vector3();
 const selectionBox=new THREE.BoxHelper(stool,'#b7b78a');selectionBox.visible=false;scene.add(selectionBox);
-function select(obj){selected=obj;selectionBox.setFromObject(obj);selectionBox.visible=true;$('#selection-name').textContent=obj.userData.name;$('#selection-description').textContent=obj.userData.description;$('#object-actions').hidden=false;$('#activate').hidden=obj.userData.kind!=='drawer';$('#activate').textContent=obj.userData.open?'Close drawer':'Open drawer';$('#move-actions').hidden=obj.userData.kind==='drawer';}
+function select(obj){invalidate();selected=obj;selectionBox.setFromObject(obj);selectionBox.visible=true;$('#selection-name').textContent=obj.userData.name;$('#selection-description').textContent=obj.userData.description;$('#object-actions').hidden=false;$('#activate').hidden=obj.userData.kind!=='drawer';$('#activate').textContent=obj.userData.open?'Close drawer':'Open drawer';$('#move-actions').hidden=obj.userData.kind==='drawer';}
 function intersect(e){const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);return ray.intersectObjects(interactables,true).map(hit=>{let o=hit.object;while(o&&!interactables.includes(o))o=o.parent;return {object:o,point:hit.point};})[0];}
 renderer.domElement.addEventListener('pointerdown',e=>{const hit=intersect(e);down={x:e.clientX,y:e.clientY,object:hit?.object};if(hit&&selected===hit.object&&selected.userData.kind!=='drawer'){dragging=true;controls.enabled=false;dragPlane.set(new THREE.Vector3(0,1,0),-selected.position.y);const p=ray.ray.intersectPlane(dragPlane,new THREE.Vector3());if(p)dragOffset.copy(selected.position).sub(p);renderer.domElement.setPointerCapture(e.pointerId);}});
 renderer.domElement.addEventListener('pointermove',e=>{if(!dragging)return;intersect(e);const p=ray.ray.intersectPlane(dragPlane,new THREE.Vector3());if(p){p.add(dragOffset);moveSelected(p.x,p.z);}});
 renderer.domElement.addEventListener('pointerup',e=>{if(dragging){dragging=false;controls.enabled=true;renderer.domElement.releasePointerCapture(e.pointerId);}else if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<6&&down.object){select(down.object);if(selected.userData.kind==='drawer')toggleDrawer();}down=null;});
 renderer.domElement.addEventListener('pointercancel',()=>{dragging=false;controls.enabled=true;down=null;});
-function moveSelected(x,z){if(!selected)return;const p=clampAsset(x,z);if(selected.userData.kind==='garment'){if(Math.abs(selected.rotation.y)<1)selected.position.z=THREE.MathUtils.clamp(z,.57,1.65);else selected.position.x=THREE.MathUtils.clamp(x,.99,1.66);}else{selected.position.x=p.x;selected.position.z=p.z;}selectionBox.setFromObject(selected);complete(2);}
+function moveSelected(x,z){invalidate();if(!selected)return;const p=clampAsset(x,z);if(selected.userData.kind==='garment'){if(Math.abs(selected.rotation.y)<1)selected.position.z=THREE.MathUtils.clamp(z,.57,1.65);else selected.position.x=THREE.MathUtils.clamp(x,.99,1.66);}else{selected.position.x=p.x;selected.position.z=p.z;}selectionBox.setFromObject(selected);complete(2);}
 function toggleDrawer(){if(!selected||selected.userData.kind!=='drawer')return;selected.userData.open=!selected.userData.open;$('#activate').textContent=selected.userData.open?'Close drawer':'Open drawer';complete(1);}
 $('#activate').onclick=toggleDrawer;
 document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{if(!selected)return;const d=b.dataset.move;moveSelected(selected.position.x+(d==='left'?-.1:d==='right'?.1:0),selected.position.z+(d==='back'?-.1:d==='forward'?.1:0));});
@@ -82,9 +87,26 @@ $('#led').onchange=e=>{strip.visible=e.target.checked;ledMat.emissiveIntensity=e
 $('#dimensions').onclick=()=>{const label=$('#dimensions-label');label.hidden=!label.hidden;$('#dimensions').textContent=label.hidden?'＋ Show dimensions':'− Hide dimensions';};
 $('#capture').onclick=()=>{renderer.render(scene,camera);const a=document.createElement('a');a.download='jourimanzky-design.png';a.href=renderer.domElement.toDataURL('image/png');a.click();toast('Your view has been saved.');};
 $('#restore').onclick=()=>{assets.forEach(a=>a.position.copy(a.userData.origin));drawers.forEach(d=>d.userData.open=false);selected=null;selectionBox.visible=false;$('#object-actions').hidden=true;$('#selection-name').textContent='The considered corner';$('#selection-description').textContent='Select a drawer, garment, shoe or accessory to discover its details.';view('perspective');toast('Assets returned to the original layout.');};
-const resize=()=>{const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.fov=r.width<500?53:38;camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(host);resize();
-let last=performance.now();renderer.setAnimationLoop(now=>{const dt=Math.min((now-last)/1000,.05);last=now;if(cameraGoal){camera.position.lerp(cameraGoal.pos,1-Math.exp(-dt*5));controls.target.lerp(cameraGoal.target,1-Math.exp(-dt*5));if(camera.position.distanceTo(cameraGoal.pos)<.005)cameraGoal=null;}for(const d of drawers){const target=d.userData.baseZ+(d.userData.open?.35:0);d.position.z=THREE.MathUtils.lerp(d.position.z,target,1-Math.exp(-dt*10));}if(selected)selectionBox.setFromObject(selected);controls.update();renderer.render(scene,camera);});
-$('#loading').hidden=true;
+const resize=()=>{invalidate();const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.fov=r.width<500?53:38;camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(host);resize();
+let last=performance.now(),frames=0;
+renderer.setAnimationLoop(now=>{
+  const dt=Math.min((now-last)/1000,.05);last=now;
+  try {
+    let moving=Boolean(cameraGoal);
+    if(cameraGoal){camera.position.lerp(cameraGoal.pos,1-Math.exp(-dt*5));controls.target.lerp(cameraGoal.target,1-Math.exp(-dt*5));if(camera.position.distanceTo(cameraGoal.pos)<.005)cameraGoal=null;}
+    for(const d of drawers){const target=d.userData.baseZ+(d.userData.open?.35:0);if(Math.abs(d.position.z-target)>.0001){moving=true;d.position.z=THREE.MathUtils.lerp(d.position.z,target,1-Math.exp(-dt*10));}}
+    const orbitChanged=controls.update();
+    if(dirty||moving||orbitChanged){
+      if(selected)selectionBox.setFromObject(selected);
+      renderer.render(scene,camera);dirty=false;frames++;
+      if(frames===1){showReady();window.dispatchEvent(new Event('showcase-ready'));}
+    }
+  } catch(error){
+    console.error('Rendering failed:',error);renderer.setAnimationLoop(null);
+    window.dispatchEvent(new Event('showcase-failed'));
+    showFailure('The scene stopped rendering. Retry the showcase to restore the graphics connection.');
+  }
+});
 // Expose serializable state for presentation QA without coupling tests to scene internals.
-window.showcase={getState:()=>({assets:assets.length,drawers:drawers.length,completed:[...completed],selected:selected?.userData.name,openDrawers:drawers.filter(d=>d.userData.open).length,renderCalls:renderer.info.render.calls}),selectDrawer:()=>select(drawers[0]),selectStool:()=>select(stool)};
+window.showcase={getState:()=>({frames,assets:assets.length,drawers:drawers.length,completed:[...completed],selected:selected?.userData.name,openDrawers:drawers.filter(d=>d.userData.open).length,renderCalls:renderer.info.render.calls}),selectDrawer:()=>select(drawers[0]),selectStool:()=>select(stool)};
 }
