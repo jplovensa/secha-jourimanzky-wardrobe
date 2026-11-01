@@ -68,7 +68,12 @@ Choose **Edit furniture layout**, then select furniture in the scene or dropdown
 Eight assemblies are editable: chest, both rear shelves, L rails, right upper/low
 shelves, entrance shoe cabinet, and mirror. Contents move with their assembly.
 
-- Drag the coloured move/rotate handles. Minimise the panel for an unobstructed view.
+- Hold and drag any furniture surface to place the whole assembly across the floor.
+  Selection is automatic, height stays fixed, and the camera remains stationary.
+  Mouse, pen and touch are supported; release to drop. Escape cancels a drag.
+- Drag empty space to orbit. Use coloured move/rotate handles for height and rotation.
+  Minimise the panel for an unobstructed view. Out-of-canvas drops and interrupted
+  touch gestures release the camera controls safely. Each completed drag is one undo step.
 - Enter structural **left edge X / base AFF Y / rear edge Z** in millimetres and
   rotation in degrees. Styling props do not change the structural edge measurements.
 - Snap toggles 25 mm translation / 15° rotation. Undo/Redo retain up to 50 edits;
