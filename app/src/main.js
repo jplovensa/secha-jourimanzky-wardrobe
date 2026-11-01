@@ -1,3 +1,4 @@
+import { createWalkthrough } from './walkthrough.js';
 import { showFailure, showReady } from './startup.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -30,11 +31,13 @@ const wall=mat('#eeeae0',.94), floor=mat('#c9c0ad',.7), black=mat('#252724',.32,
 const room=new THREE.Group();scene.add(room);
 function box(w,h,d,x,y,z,m,parent=room){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;}
 function rod(a,b,r=.012,m=black,parent=room){const start=new THREE.Vector3(...a),end=new THREE.Vector3(...b),delta=end.clone().sub(start);const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,delta.length(),12),m);o.position.copy(start.add(end).multiplyScalar(.5));o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());o.castShadow=true;parent.add(o);return o;}
-box(2.17,.12,2.30,1.011,-.065,1.078,floor);
+const finishedFloor=box(ROOM.width,.12,ROOM.depth,ROOM.width/2,-.06,ROOM.depth/2,floor);
 // Tile joints and slim perimeter skirting.
 for(let x=.5;x<2.1;x+=.5)box(.002,.001,2.157,x,.001,1.078,mat('#afa895'));
 for(let z=.5;z<2.2;z+=.5)box(2.022,.001,.002,1.011,.001,z,mat('#afa895'));
-box(2.16,2.61,.07,1.011,1.305,-.035,wall);box(.07,2.61,2.157,2.057,1.305,1.078,wall);
+box(ROOM.width+.14,ROOM.height,.07,ROOM.width/2,ROOM.height/2,-.035,wall);
+box(.07,ROOM.height,ROOM.depth,ROOM.width+.035,ROOM.height/2,ROOM.depth/2,wall);
+const leftBacking=box(.07,ROOM.height,ROOM.depth,-.035,ROOM.height/2,ROOM.depth/2,wall);leftBacking.visible=false;
 box(2.022,.055,.015,1.011,.027,.012,wall);box(.015,.055,2.157,2.01,.027,1.078,wall);
 // Full-height left mirror; front and ceiling cut away for the presentation.
 const mirror=new Reflector(new THREE.PlaneGeometry(2.157,2.61),{color:0xc6ccc7,textureWidth:512,textureHeight:512,clipBias:.003});mirror.rotation.y=Math.PI/2;mirror.position.set(.006,1.305,1.0785);room.add(mirror);
@@ -42,8 +45,8 @@ rod([.008,0,0],[.008,2.61,0],.003,black);rod([.008,0,2.157],[.008,2.61,2.157],.0
 const interactables=[],drawers=[],assets=[];
 function interactive(group,data){group.userData={...data};interactables.push(group);return group;}
 // Chest carcass and four independently moving drawers.
-box(.9,.025,.4,.472,.89,.2,wood);box(.025,.88,.4,.034,.44,.2,wood);box(.025,.88,.4,.91,.44,.2,wood);box(.87,.85,.015,.472,.44,.012,wood);
-for(let i=0;i<4;i++){const g=new THREE.Group();g.position.set(.472,.12+i*.215,.2);room.add(g);box(.855,.19,.025,0,0,.2,wood,g);box(.80,.025,.34,0,-.075,0,wood,g);box(.016,.14,.34,-.4,0,0,wood,g);box(.016,.14,.34,.4,0,0,wood,g);box(.81,.14,.016,0,0,-.17,wood,g);box(.16,.012,.023,0,.035,.222,brass,g);interactive(g,{kind:'drawer',name:`Drawer ${i+1}`,description:'Rear-left teak chest · 900 × 400 × 900 mm. Click to explore the assumed 350 mm drawer extension.',open:false,baseZ:.2});drawers.push(g);}
+box(.9,.025,.4,.472,.8875,.2,wood);box(.025,.88,.4,.034,.44,.2,wood);box(.025,.88,.4,.91,.44,.2,wood);box(.87,.85,.015,.472,.44,.012,wood);
+for(let i=0;i<4;i++){const g=new THREE.Group();g.position.set(.472,.12+i*.215,.2);room.add(g);box(.855,.19,.025,0,0,.1875,wood,g);box(.80,.025,.34,0,-.075,0,wood,g);box(.016,.14,.34,-.4,0,0,wood,g);box(.016,.14,.34,.4,0,0,wood,g);box(.81,.14,.016,0,0,-.17,wood,g);box(.16,.012,.023,0,.035,.222,brass,g);interactive(g,{kind:'drawer',name:`Drawer ${i+1}`,description:'Rear-left teak chest · 900 × 400 × 900 mm. Click to explore the assumed 350 mm drawer extension.',open:false,baseZ:.2});drawers.push(g);}
 for(const y of [1.35,1.75])box(.9,.03,.25,.472,y+.015,.125,wood);
 for(const h of [1.05,2]){rod([1.722,h,.3],[1.722,h,1.75]);rod([.972,h,.3],[1.722,h,.3]);for(const z of [.55,1.60])rod([1.722,h,z],[2.022,h,z],.009);rod([1.05,h,.0],[1.05,h,.3],.009);}
 box(.35,.032,1.2,1.847,2.216,1.15,wood);box(.3,.025,1.2,1.872,.1125,1.15,wood);
@@ -56,10 +59,9 @@ for(const x of [-SHOE_RACK.width/2+panel/2,SHOE_RACK.width/2-panel/2])
   box(panel,SHOE_RACK.height,SHOE_RACK.depth,x,SHOE_RACK.height/2,0,wood,shoeRack);
 for(let i=0;i<SHOE_RACK.levels;i++)
   box(SHOE_RACK.width,shelfThickness,SHOE_RACK.depth,0,shelfThickness/2+i*(SHOE_RACK.height-shelfThickness)/(SHOE_RACK.levels-1),0,wood,shoeRack);
-// Low entrance return; cutaway height is for presentation, not construction.
-const entranceReturn=box(1.216,1.05,.07,1.414,.525,2.192,wall);
-const entranceCap=box(1.216,.03,.13,1.414,1.065,2.16,wood);
-const ceiling=box(2.022,.035,2.157,1.011,2.63,1.078,wall);ceiling.visible=false;
+// Full-height entrance return uses the plan's 806 mm opening. Cut away in Explore.
+const entranceReturn=box(SHOE_RACK.width,ROOM.height,.07,1.414,ROOM.height/2,ROOM.depth+.035,wall);
+const ceiling=box(ROOM.width,.035,ROOM.depth,ROOM.width/2,ROOM.height+.0175,ROOM.depth/2,wall);ceiling.visible=false;
 const garmentColors=['#ded3bc','#9c9d8a','#b5a69a','#eee7d9','#595e54','#9b846f'];
 function garment(x,y,z,angle,color){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;room.add(g);const cloth=mat(color,.95);cloth.side=THREE.DoubleSide;const shape=new THREE.Shape();shape.moveTo(-.075,-.04);shape.lineTo(-.24,-.12);shape.lineTo(-.31,-.29);shape.lineTo(-.20,-.34);shape.lineTo(-.17,-.23);shape.lineTo(-.175,-.76);shape.quadraticCurveTo(0,-.80,.175,-.76);shape.lineTo(.17,-.23);shape.lineTo(.20,-.34);shape.lineTo(.31,-.29);shape.lineTo(.24,-.12);shape.lineTo(.075,-.04);shape.quadraticCurveTo(0,-.11,-.075,-.04);const mesh=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.022,bevelEnabled:true,bevelSize:.012,bevelThickness:.007,bevelSegments:2,steps:1}),cloth);mesh.castShadow=true;mesh.receiveShadow=false;g.add(mesh);rod([-.21,-.10,0],[0,-.015,0],.004,brass,g);rod([0,-.015,0],[.21,-.10,0],.004,brass,g);rod([0,-.015,0],[0,.015,0],.004,brass,g);for(let i=-2;i<=2;i++)rod([i*.052,-.2,.034],[i*.05,-.73,.034],.0015,mat(color,.99),g);interactive(g,{kind:'garment',name:'Everyday linen',description:'Two-tier hanging at 1050 and 2000 mm AFF. Slide garments along the right-hand rail.',axis:'z',origin:g.position.clone()});assets.push(g);}
 for(const h of [1.05,2]){for(let i=0;i<7;i++)garment(1.722,h,.66+i*.143,0,garmentColors[i%6]);for(let i=0;i<3;i++)garment(1.07+i*.18,h,.3,Math.PI/2,garmentColors[(i+2)%6]);}
@@ -68,18 +70,17 @@ for(let i=0;i<4;i++)for(let j=0;j<3;j++)shoe(.99+j*.36,.025+i*(SHOE_RACK.height-
 shoe(1.86,.13,.88,'#c3b7a2');
 function bag(x,y,z){const g=new THREE.Group();g.position.set(x,y,z);room.add(g);box(.24,.19,.13,0,.105,0,mat('#967452',.65),g);const h=new THREE.Mesh(new THREE.TorusGeometry(.065,.009,8,24,Math.PI),mat('#654b34'));h.position.set(0,.20,0);g.add(h);interactive(g,{kind:'asset',name:'Weekend companion',description:'A leather accent on the rear shelf. Drag or use arrows to find its place.',origin:g.position.clone()});assets.push(g);}
 bag(.30,1.78,.125);bag(.67,1.38,.125);
-// Styled towel stacks on chest and a movable upholstered stool in the aisle.
+// Styled towel stacks; the measured aisle remains free of furniture.
 for(let i=0;i<3;i++)box(.26,.045,.21,.29,.93+i*.045,.19,linen);
-const stool=new THREE.Group();stool.position.set(.83,0,1.2);room.add(stool);stool.visible=false;const cushion=new THREE.Mesh(new THREE.CylinderGeometry(.22,.23,.16,48),linen);cushion.position.y=.40;cushion.castShadow=true;stool.add(cushion);for(const x of [-.13,.13])for(const z of [-.13,.13])rod([x,.03,z],[x*.85,.35,z*.85],.014,wood,stool);interactive(stool,{kind:'asset',name:'A moment of pause',description:'Upholstered dressing stool. Move it through the main aisle to explore the room.',origin:stool.position.clone()});assets.push(stool);
 const hemi=new THREE.HemisphereLight('#fff6df','#a19c83',1.8);scene.add(hemi);const sun=new THREE.DirectionalLight('#fff4da',2.5);sun.position.set(-2,5,4);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-4;sun.shadow.camera.right=4;sun.shadow.camera.top=4;sun.shadow.camera.bottom=-4;sun.shadow.normalBias=.025;scene.add(sun);
 const strip=new THREE.PointLight('#ffda9c',9,4,2);strip.position.set(1.65,2.1,1.15);scene.add(strip);
 // Ground receives shadows beneath the room platform.
 const ground=box(200,.025,200,1,-.15,1,mat('#e1dfd4'));ground.castShadow=false;
 const ray=new THREE.Raycaster(),pointer=new THREE.Vector2();let selected=null,dragging=false,down=null,dragPlane=new THREE.Plane(),dragOffset=new THREE.Vector3();
-const selectionBox=new THREE.BoxHelper(stool,'#b7b78a');selectionBox.visible=false;scene.add(selectionBox);
+const selectionBox=new THREE.BoxHelper(drawers[0],'#b7b78a');selectionBox.visible=false;scene.add(selectionBox);
 function select(obj){invalidate();selected=obj;selectionBox.setFromObject(obj);selectionBox.visible=true;$('#selection-name').textContent=obj.userData.name;$('#selection-description').textContent=obj.userData.description;$('#object-actions').hidden=false;$('#activate').hidden=obj.userData.kind!=='drawer';$('#activate').textContent=obj.userData.open?'Close drawer':'Open drawer';$('#move-actions').hidden=obj.userData.kind==='drawer';}
 function intersect(e){const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);return ray.intersectObjects(interactables,true).map(hit=>{let o=hit.object;while(o&&!interactables.includes(o))o=o.parent;return {object:o,point:hit.point};})[0];}
-renderer.domElement.addEventListener('pointerdown',e=>{const hit=intersect(e);down={x:e.clientX,y:e.clientY,object:hit?.object};if(hit&&selected===hit.object&&selected.userData.kind!=='drawer'){dragging=true;controls.enabled=false;dragPlane.set(new THREE.Vector3(0,1,0),-selected.position.y);const p=ray.ray.intersectPlane(dragPlane,new THREE.Vector3());if(p)dragOffset.copy(selected.position).sub(room.worldToLocal(p));renderer.domElement.setPointerCapture(e.pointerId);}});
+renderer.domElement.addEventListener('pointerdown',e=>{if(walkthrough.active)return;const hit=intersect(e);down={x:e.clientX,y:e.clientY,object:hit?.object};if(hit&&selected===hit.object&&selected.userData.kind!=='drawer'){dragging=true;controls.enabled=false;dragPlane.set(new THREE.Vector3(0,1,0),-selected.position.y);const p=ray.ray.intersectPlane(dragPlane,new THREE.Vector3());if(p)dragOffset.copy(selected.position).sub(room.worldToLocal(p));renderer.domElement.setPointerCapture(e.pointerId);}});
 renderer.domElement.addEventListener('pointermove',e=>{if(!dragging)return;intersect(e);const p=ray.ray.intersectPlane(dragPlane,new THREE.Vector3());if(p){room.worldToLocal(p).add(dragOffset);moveSelected(p.x,p.z);}});
 renderer.domElement.addEventListener('pointerup',e=>{if(dragging){dragging=false;controls.enabled=true;renderer.domElement.releasePointerCapture(e.pointerId);}else if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<6&&down.object){select(down.object);if(selected.userData.kind==='drawer')toggleDrawer();}down=null;});
 renderer.domElement.addEventListener('pointercancel',()=>{dragging=false;controls.enabled=true;down=null;});
@@ -87,23 +88,49 @@ function moveSelected(x,z){invalidate();if(!selected)return;const p=clampAsset(x
 function toggleDrawer(){if(!selected||selected.userData.kind!=='drawer')return;selected.userData.open=!selected.userData.open;$('#activate').textContent=selected.userData.open?'Close drawer':'Open drawer';complete(1);}
 $('#activate').onclick=toggleDrawer;
 document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{if(!selected)return;const d=b.dataset.move;moveSelected(selected.position.x+(d==='left'?-.1:d==='right'?.1:0),selected.position.z+(d==='back'?-.1:d==='forward'?.1:0));});
-const views={perspective:{pos:[-3.3,4.1,5.9],target:[1.03,1.12,1.03]},interior:{pos:[.50,1.58,2.88],target:[1.00,1.28,.30]},plan:{pos:[1.01,6.5,1.09],target:[1.011,0,1.078]}};let cameraGoal=null,currentView='perspective';
-function view(name,instant=true){currentView=name;camera.fov=name==='interior'?65:(host.clientWidth<500?53:38);camera.updateProjectionMatrix();ceiling.visible=name==='interior';entranceReturn.visible=name==='plan';entranceCap.visible=name==='plan';const v=views[name];cameraGoal={pos:new THREE.Vector3(...v.pos),target:new THREE.Vector3(...v.target)};if(instant){camera.position.copy(cameraGoal.pos);controls.target.copy(cameraGoal.target);cameraGoal=null;}$('#view-label').textContent=name==='plan'?'FLOOR PLAN':name.toUpperCase();document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));if(name==='interior')complete(3);}
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>view(b.dataset.view));controls.addEventListener('start',()=>cameraGoal=null);view('perspective',true);$('#reset').onclick=()=>view('perspective');
+const views={perspective:{pos:[-3.3,4.1,5.9],target:[1.03,1.12,1.03]},interior:{pos:[.75,1.60,1.55],target:[.95,1.40,.45]},plan:{pos:[1.01,6.5,1.09],target:[1.011,0,1.078]}};
+let cameraGoal=null,currentView='perspective';
+function setPresentation(name){
+  currentView=name;
+  const inside=name==='interior'||name==='walkthrough';
+  camera.fov=inside?65:(host.clientWidth<500?53:38);camera.updateProjectionMatrix();
+  ceiling.visible=inside;leftBacking.visible=inside;
+  entranceReturn.visible=inside||name==='plan';
+  $('#plan-overlay').hidden=name!=='plan';host.style.visibility=name==='plan'?'hidden':'visible';
+  document.querySelector('.scene-caption').hidden=name==='walkthrough'||name==='plan';
+  controls.enabled=name!=='plan'&&name!=='walkthrough';
+  $('#view-label').textContent=name==='plan'?'FLOOR PLAN':name.toUpperCase();
+  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  invalidate();
+}
+const walkthrough=createWalkthrough({camera,controls,invalidate,
+  onStart:()=>{cameraGoal=null;drawers.forEach(d=>{d.userData.open=false;d.position.z=d.userData.baseZ;});selectionBox.visible=false;selected=null;$('#object-actions').hidden=true;setPresentation('walkthrough');complete(3);},
+  onExit:()=>view('interior'),
+});
+function view(name,instant=true){
+  walkthrough.stop();setPresentation(name);const v=views[name];
+  cameraGoal={pos:new THREE.Vector3(...v.pos),target:new THREE.Vector3(...v.target)};
+  if(instant){camera.position.copy(cameraGoal.pos);controls.target.copy(cameraGoal.target);cameraGoal=null;}
+  if(name==='interior')complete(3);
+}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>view(b.dataset.view));
+$('#start-walkthrough').onclick=()=>walkthrough.start();
+window.addEventListener('showcase-pause-walkthrough',()=>{if(walkthrough.active)walkthrough.pause();});
+controls.addEventListener('start',()=>cameraGoal=null);view('perspective',true);
+$('#reset').onclick=()=>view('perspective');
 const finishes={teak:{color:'#b99577',label:'Baltimore teak',note:'TH 356 · HPL reference'},oak:{color:'#f1d5a1',label:'Natural oak',note:'Alternative finish · conceptual'},walnut:{color:'#694b37',label:'Smoked walnut',note:'Alternative finish · conceptual'}};
 document.querySelectorAll('[data-finish]').forEach(b=>b.onclick=()=>{const f=finishes[b.dataset.finish];wood.color.set(f.color);$('#finish-name').innerHTML=`${f.label}<small>${f.note}</small>`;document.querySelectorAll('[data-finish]').forEach(a=>a.classList.toggle('active',a===b));complete(0);});
 document.querySelectorAll('[data-light]').forEach(b=>b.onclick=()=>{const evening=b.dataset.light==='evening';sun.intensity=evening?.25:2.5;hemi.intensity=evening?.6:1.8;scene.environmentIntensity=evening?.25:.65;renderer.toneMappingExposure=evening?.85:.95;document.querySelectorAll('[data-light]').forEach(a=>a.classList.toggle('active',a===b));});
-$('#stool').onchange=e=>{stool.visible=e.target.checked;invalidate();};
 $('#led').onchange=e=>{strip.visible=e.target.checked;ledMat.emissiveIntensity=e.target.checked?3:0;};
 $('#dimensions').onclick=()=>{const label=$('#dimensions-label');label.hidden=!label.hidden;$('#dimensions').textContent=label.hidden?'＋ Show dimensions':'− Hide dimensions';};
 $('#capture').onclick=()=>{renderer.render(scene,camera);const a=document.createElement('a');a.download='jourimanzky-design.png';a.href=renderer.domElement.toDataURL('image/png');a.click();toast('Your view has been saved.');};
-$('#restore').onclick=()=>{stool.visible=false;$('#stool').checked=false;assets.forEach(a=>a.position.copy(a.userData.origin));drawers.forEach(d=>d.userData.open=false);selected=null;selectionBox.visible=false;$('#object-actions').hidden=true;$('#selection-name').textContent='The considered corner';$('#selection-description').textContent='Select a drawer, garment, shoe or accessory to discover its details.';view('perspective');toast('Assets returned to the original layout.');};
-const resize=()=>{invalidate();const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.fov=currentView==='interior'?65:(r.width<500?53:38);camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(host);resize();
+$('#restore').onclick=()=>{assets.forEach(a=>a.position.copy(a.userData.origin));drawers.forEach(d=>d.userData.open=false);selected=null;selectionBox.visible=false;$('#object-actions').hidden=true;$('#selection-name').textContent='The considered corner';$('#selection-description').textContent='Select a drawer, garment, shoe or accessory to discover its details.';view('perspective');toast('Assets returned to the original layout.');};
+const resize=()=>{invalidate();const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height);camera.aspect=r.width/r.height;camera.fov=(currentView==='interior'||currentView==='walkthrough')?65:(r.width<500?53:38);camera.updateProjectionMatrix();};new ResizeObserver(resize).observe(host);resize();
 let last=performance.now(),frames=0;
 renderer.setAnimationLoop(now=>{
   const dt=Math.min((now-last)/1000,.05);last=now;
   try {
-    let moving=Boolean(cameraGoal);
+    let moving=walkthrough.tick(now)||Boolean(cameraGoal);
     if(cameraGoal){camera.position.lerp(cameraGoal.pos,1-Math.exp(-dt*5));controls.target.lerp(cameraGoal.target,1-Math.exp(-dt*5));if(camera.position.distanceTo(cameraGoal.pos)<.005)cameraGoal=null;}
     for(const d of drawers){const target=d.userData.baseZ+(d.userData.open?.35:0);if(Math.abs(d.position.z-target)>.0001){moving=true;d.position.z=THREE.MathUtils.lerp(d.position.z,target,1-Math.exp(-dt*10));}}
     const orbitChanged=controls.update();
@@ -119,5 +146,5 @@ renderer.setAnimationLoop(now=>{
   }
 });
 // Expose serializable state for presentation QA without coupling tests to scene internals.
-window.showcase={getState:()=>({layout:{hangingX:room.localToWorld(new THREE.Vector3(1.722,1,.9)).x,chestX:drawers[0].getWorldPosition(new THREE.Vector3()).x,mirrorX:mirror.getWorldPosition(new THREE.Vector3()).x,shoeRackBounds:(()=>{const b=new THREE.Box3().setFromObject(shoeRack);return {min:b.min.toArray(),max:b.max.toArray(),levels:SHOE_RACK.levels};})()},frames,assets:assets.length,drawers:drawers.length,completed:[...completed],selected:selected?.userData.name,openDrawers:drawers.filter(d=>d.userData.open).length,renderCalls:renderer.info.render.calls}),selectDrawer:()=>select(drawers[0]),selectStool:()=>{stool.visible=true;$('#stool').checked=true;select(stool);},drawerScreen:()=>{room.updateMatrixWorld(true);const p=drawers[1].localToWorld(new THREE.Vector3(0,0,.225)).project(camera);const r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}};
+window.showcase={getState:()=>({walkthrough:walkthrough.getState(),camera:camera.position.toArray(),roomSize:{width:finishedFloor.geometry.parameters.width,depth:finishedFloor.geometry.parameters.depth,height:ceiling.position.y-.035/2,entranceOpening:SHOE_RACK.x},layout:{hangingX:room.localToWorld(new THREE.Vector3(1.722,1,.9)).x,chestX:drawers[0].getWorldPosition(new THREE.Vector3()).x,mirrorX:mirror.getWorldPosition(new THREE.Vector3()).x,shoeRackBounds:(()=>{const b=new THREE.Box3().setFromObject(shoeRack);return {min:b.min.toArray(),max:b.max.toArray(),levels:SHOE_RACK.levels};})()},frames,assets:assets.length,drawers:drawers.length,completed:[...completed],selected:selected?.userData.name,openDrawers:drawers.filter(d=>d.userData.open).length,renderCalls:renderer.info.render.calls}),selectDrawer:()=>select(drawers[0]),selectAsset:()=>select(assets.find(a=>a.userData.name==='Weekend companion')),drawerScreen:()=>{room.updateMatrixWorld(true);const p=drawers[1].localToWorld(new THREE.Vector3(0,0,.225)).project(camera);const r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}};
 }

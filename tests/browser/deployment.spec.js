@@ -90,3 +90,30 @@ test('supplied film plays, seeks and pauses when closed', async ({page,baseURL})
   await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(true);
   await expect(page.locator('#watch-film')).toBeFocused();
 });
+
+test('measured room and entrance walkthrough with no stool',async({page,baseURL})=>{
+ await page.goto(baseURL);await page.waitForFunction(()=>window.showcase?.getState().frames>0);
+ const state=await page.evaluate(()=>window.showcase.getState());
+ expect(state.roomSize.width).toBeCloseTo(2.022,4);expect(state.roomSize.depth).toBeCloseTo(2.157,4);expect(state.roomSize.height).toBeCloseTo(2.610,4);
+ expect(state.roomSize.entranceOpening).toBe(.806);
+ await expect(page.getByText('Dressing stool',{exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Start walkthrough',exact:false}).click();
+ await expect(page.locator('#view-label')).toHaveText('WALKTHROUGH');
+ await expect(page.locator('#walk-chapter')).toContainText('Entrance');
+ await page.getByRole('button',{name:'Pause',exact:true}).click();
+ const paused=await page.evaluate(()=>window.showcase.getState());
+ expect(paused.walkthrough.active).toBe(true);expect(paused.walkthrough.playing).toBe(false);
+ expect(paused.camera[0]).toBeLessThan(.806);expect(paused.camera[1]).toBeCloseTo(1.60);
+ await page.screenshot({path:'/tmp/walkthrough-entrance.png'});
+ await page.getByRole('button',{name:'Next stop',exact:true}).click();
+ await expect(page.locator('#walk-chapter')).toContainText('806 mm');
+ await page.getByRole('button',{name:'Next stop',exact:true}).click();
+ expect((await page.evaluate(()=>window.showcase.getState())).camera[2]).toBeCloseTo(1.12,2);
+ await page.locator('#walk-progress').evaluate(el=>{el.value='27';el.dispatchEvent(new Event('input',{bubbles:true}));});
+ await expect(page.locator('#walk-chapter')).toContainText('shoe rack');
+ await page.getByRole('button',{name:'Exit walkthrough',exact:true}).click();
+ expect((await page.evaluate(()=>window.showcase.getState())).walkthrough.active).toBe(false);
+ await page.getByRole('button',{name:'Floor plan',exact:false}).click();
+ await expect(page.getByRole('img',{name:'Floorplan with entrance at top'})).toBeVisible();
+ await page.screenshot({path:'/tmp/walkthrough-floorplan.png'});
+});

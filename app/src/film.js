@@ -3,6 +3,7 @@ const dialog = document.querySelector('#film-dialog');
 const video = document.querySelector('#closet-film');
 const trigger = document.querySelector('#watch-film');
 trigger.addEventListener('click', () => {
+  window.dispatchEvent(new Event('showcase-pause-walkthrough'));
   dialog.showModal();
   video.play().catch(() => { /* Native controls remain available if autoplay is blocked. */ });
 });

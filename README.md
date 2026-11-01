@@ -39,14 +39,22 @@ z = 1807–2157 mm: 1216 W × 350 D × 1500 H mm, five levels. The right hanging
 ends at z = 1750 mm, leaving the specified 57 mm nominal gap before the rack.
 Room dimensions remain 2022 × 2157 × 2610 mm and rails remain at 1050 / 2000 mm AFF.
 The earlier render's reversed orientation and rear-corner shoe column are superseded.
-The low entrance wall is shown only in plan mode so the rack remains visible in 3D; the dashed entrance pocket still
+Full-height entrance and left backing walls are visible in entrance/walkthrough modes and cut away in Explore; the dashed entrance pocket still
 requires survey and has no invented measured geometry. Verify all dimensions on site.
 
-- Layout, entrance, and plan camera presets; the ceiling appears in entrance mode.
+- Layout and entrance camera presets, plus a labelled SVG floorplan with entrance at
+  the top, mirror left, right-hand L hanging, drawers rear-left, and D on the upper return.
+- A 31-second guided walkthrough at 1600 mm eye height holds the entrance approach for three seconds,
+  crosses the left opening, and visits the aisle, hanging, drawers, mirror, and shoe rack.
+  Play/pause, previous/next stops, scrub, replay and Escape/exit are supported.
+  The tour pauses in a hidden tab or when opening the presentation film.
+- The finished floor is exactly 2022 × 2157 mm; the ceiling underside is at 2610 mm.
+  One model unit is one metre. Only the approach before the threshold is illustrative;
+  the retained entrance pocket has no surveyed dimensions in the supplied plan.
 - PBR teak, oak and walnut options, planar mirror reflections, soft shadows,
   daylight/evening settings and under-shelf lighting.
 - Click a drawer to open/close it. Select accessories, then drag or use the arrows.
-  The optional dressing stool is off initially to match the clear reference aisle.
+  The dressing stool has been removed entirely, keeping the measured aisle clear.
 - Four exploration objectives, reset placement, and PNG export.
 - **Watch the wardrobe film** opens the supplied 10-second MP4 with native playback,
   seeking, volume and fullscreen controls. Close or Escape pauses playback and
