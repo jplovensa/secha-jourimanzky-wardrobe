@@ -1,0 +1,11 @@
+import {test,expect} from '@playwright/test';
+test('renders and completes all four interactive objectives',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await page.waitForFunction(()=>window.showcase);expect(await page.evaluate(()=>window.showcase.getState().renderCalls)).toBeGreaterThan(100);
+ await page.getByRole('button',{name:'Natural oak',exact:true}).click();await expect(page.locator('#finish-name')).toContainText('Natural oak');
+ await page.waitForTimeout(500);await page.mouse.click(555,620);await expect(page.locator('#selection-name')).toContainText('Drawer');expect(await page.evaluate(()=>window.showcase.getState().openDrawers)).toBe(1);await page.getByRole('button',{name:'Close drawer',exact:true}).click();expect(await page.evaluate(()=>window.showcase.getState().openDrawers)).toBe(0);
+ await page.evaluate(()=>window.showcase.selectStool());await page.getByRole('button',{name:'Move right',exact:true}).click();await page.getByRole('button',{name:'Step inside',exact:false}).click();await expect(page.locator('#progress-count')).toHaveText('4 / 4');await expect(page.locator('#achievement')).toContainText('unlocked');
+ await page.getByRole('button',{name:'Evening',exact:true}).click();await page.locator('#led').uncheck();await page.getByRole('button',{name:'Show dimensions',exact:false}).click();await expect(page.locator('#dimensions-label')).toBeVisible();
+ await page.getByRole('button',{name:'Reset space',exact:false}).click();expect(await page.evaluate(()=>window.showcase.getState().openDrawers)).toBe(0);
+ const download=page.waitForEvent('download');await page.getByRole('button',{name:'Save view',exact:false}).click();expect((await download).suggestedFilename()).toBe('jourimanzky-design.png');expect(errors).toEqual([]);
+});
+test('mobile controls fit viewport and WebGL renders',async({page})=>{await page.setViewportSize({width:390,height:844});await page.goto('/');await page.waitForFunction(()=>window.showcase);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);await page.getByRole('button',{name:'Floor plan',exact:false}).click();await expect(page.locator('#view-label')).toHaveText('FLOOR PLAN');await page.waitForTimeout(1800);await page.screenshot({path:'/tmp/wardrobe-mobile.png',fullPage:true});});
