@@ -42,23 +42,43 @@ The earlier render's reversed orientation and rear-corner shoe column are supers
 Full-height entrance and left backing walls are visible in entrance/walkthrough modes and cut away in Explore; the dashed entrance pocket still
 requires survey and has no invented measured geometry. Verify all dimensions on site.
 
-- Layout and entrance camera presets, plus a labelled SVG floorplan with entrance at
-  the top, mirror left, right-hand L hanging, drawers rear-left, and D on the upper return.
-- A 31-second guided walkthrough at 1600 mm eye height holds the entrance approach for three seconds,
-  crosses the left opening, and visits the aisle, hanging, drawers, mirror, and shoe rack.
-  Play/pause, previous/next stops, scrub, replay and Escape/exit are supported.
-  The tour pauses in a hidden tab or when opening the presentation film.
-- The finished floor is exactly 2022 × 2157 mm; the ceiling underside is at 2610 mm.
-  One model unit is one metre. Only the approach before the threshold is illustrative;
-  the retained entrance pocket has no surveyed dimensions in the supplied plan.
-- PBR teak, oak and walnut options, planar mirror reflections, soft shadows,
-  daylight/evening settings and under-shelf lighting.
-- Click a drawer to open/close it. Select accessories, then drag or use the arrows.
-  The dressing stool has been removed entirely, keeping the measured aisle clear.
-- Four exploration objectives, reset placement, and PNG export.
-- **Watch the wardrobe film** opens the supplied 10-second MP4 with native playback,
-  seeking, volume and fullscreen controls. Close or Escape pauses playback and
-  restores focus. Video works independently of WebGL. No autoplay on page load.
+- **Start discovery** opens a point-and-click room exploration. Click numbered 3D
+  hotspots or station buttons to choose your viewpoint. The camera stays still
+  until you choose a destination; there is no autoplay, timeline or video tour.
+- Five tasks award 20 XP each: identify the mirror direction, select a garment,
+  open a drawer, inspect the mirror, and move a shoe pair. Collect all five badges
+  to unlock Wardrobe Explorer. Repeating an action cannot farm XP. Restart clears
+  discovery progress; Escape or Exit returns to normal exploration.
+- PBR wood grain, plaster and limestone textures; cloth weave and draped garment
+  geometry; rounded joinery, shoe lining/laces, stitched leather, ceramic styling,
+  recessed light fittings, and a full-height planar mirror. These are procedural
+  approximations, not manufacturer scans or a path-traced photograph.
+- Layout and entrance views plus the **original** floorplan reference, with entrance
+  at top. This plan remains a baseline for comparison with furniture revisions.
+- The finished floor is 2022 × 2157 mm and ceiling underside is 2610 mm. One model
+  unit is one metre. Viewpoints use 1600 mm eye height. The exterior approach is
+  illustrative because the retained entrance pocket has no surveyed dimensions.
+- The stool is removed. Drawers, props, lighting, material options and PNG export
+  remain interactive. The optional supplied MP4 is available separately as
+  **Reference film**, with native playback controls.
+
+## Furniture revisions
+
+Choose **Edit furniture layout**, then select furniture in the scene or dropdown.
+Eight assemblies are editable: chest, both rear shelves, L rails, right upper/low
+shelves, entrance shoe cabinet, and mirror. Contents move with their assembly.
+
+- Drag the coloured move/rotate handles. Minimise the panel for an unobstructed view.
+- Enter structural **left edge X / base AFF Y / rear edge Z** in millimetres and
+  rotation in degrees. Styling props do not change the structural edge measurements.
+- Snap toggles 25 mm translation / 15° rotation. Undo/Redo retain up to 50 edits;
+  Reset to floorplan restores the initial measured positions.
+- Export revision downloads a versioned JSON file in mm. Import restores the
+  revision and supports Undo. Files for other room dimensions, unknown furniture,
+  duplicate IDs or non-finite coordinates are rejected before applying changes.
+- Revisions last for the current page session unless exported. The room shell and
+  measured dimensions stay fixed. Editing is for spatial revision; it does not
+  enforce collision, anchoring or installation-clearance rules.
 
 Editable media is in `app/public/media/`; `npm run build` includes it in both
 `dist/media/` and the branch-deployable root `media/`. The clip is presentation
@@ -72,9 +92,10 @@ not perform collision checks.
 npm test
 npm run build
 npm run test:e2e
+npm run test:production
 ```
 
-Browser tests use system Chromium by default (`/usr/bin/chromium`); set `CHROMIUM_PATH` for another installation. They exercise WebGL rendering, drawers, movement controls, all four objectives, finish/light controls, PNG download, and mobile viewport overflow. The browser QA hooks in `window.showcase` only provide scene selection and serializable state; interactions still use the actual UI handlers.
+Browser tests use system Chromium by default (`/usr/bin/chromium`); set `CHROMIUM_PATH` for another installation. They exercise WebGL rendering, drawers, movement controls, all four objectives, finish/light controls, PNG download, and mobile viewport overflow. The browser QA hooks in `window.showcase` provide serializable state and projected object coordinates; tests click the actual scene and UI handlers.
 
 No cloud environment is published by this application or its setup commands.
 
