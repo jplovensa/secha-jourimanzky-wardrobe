@@ -13,6 +13,26 @@ npm run dev
 
 For a production build: `npm run build`, then `npm run preview`. Deploy the generated `dist/` folder to any static host. No API keys, backend, or external texture downloads are needed.
 
+## GitHub Pages deployment
+
+Do not serve the repository root as plain static files: it contains Vite source,
+including npm module imports that browsers cannot resolve directly. Deploy the
+**built `dist/` directory**. Relative asset URLs support the project path
+`/secha-jourimanzky-wardrobe/` and domain-root hosting.
+
+1. In repository **Settings → Pages → Build and deployment**, select **GitHub Actions**.
+2. In **Actions**, select **Build and deploy wardrobe to GitHub Pages** and use **Run workflow** on `main`.
+3. Wait for the deploy job to finish, then reload the Pages URL.
+
+The workflow builds with `npm ci`, tests the model, and uploads only `dist/`.
+It is manual so committing changes does not publish without an explicit action.
+No environment publication is involved.
+
+`npm run test:production` checks stylesheet loading, asset responses, WebGL,
+and interactions on a strict static server at the actual project subpath.
+A failed application import now displays a loading error instead of spinning forever;
+the stylesheet loads independently of the Three.js bundle.
+
 ## Presentation
 
 - Dimensioned 2022 × 2157 × 2610 mm main bay, full left-wall planar mirror, right/rear L rails at 1050 / 2000 mm AFF.

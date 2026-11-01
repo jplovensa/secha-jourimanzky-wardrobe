@@ -1,0 +1,21 @@
+import { test, expect } from '@playwright/test';
+test('production deployment loads styles, bundles and interactive 3D under a project path', async ({ page, baseURL }) => {
+  const failures = [];
+  page.on('pageerror', error => failures.push(error.message));
+  page.on('requestfailed', request => failures.push(request.url()));
+  page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()} ${response.url()}`); });
+  await page.goto(baseURL);
+  await page.waitForFunction(() => window.showcase);
+  await expect(page.locator('#loading')).toBeHidden();
+  expect(await page.locator('main').evaluate(el => getComputedStyle(el).display)).toBe('grid');
+  expect(await page.evaluate(() => window.showcase.getState().renderCalls)).toBeGreaterThan(100);
+  await page.getByRole('button', { name: 'Natural oak', exact: true }).click();
+  await expect(page.locator('#finish-name')).toContainText('Natural oak');
+  await page.evaluate(() => window.showcase.selectDrawer());
+  await page.getByRole('button', { name: 'Open drawer', exact: true }).click();
+  expect(await page.evaluate(() => window.showcase.getState().openDrawers)).toBe(1);
+  await page.getByRole('button', { name: 'Step inside', exact: false }).click();
+  await expect(page.locator('#view-label')).toHaveText('INTERIOR');
+  expect(failures).toEqual([]);
+  await page.screenshot({ path: '/tmp/wardrobe-production-fixed.png' });
+});
