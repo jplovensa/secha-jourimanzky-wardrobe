@@ -5,6 +5,9 @@ test('production deployment loads styles, bundles and interactive 3D under a pro
   page.on('requestfailed', request => failures.push(request.url()));
   page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()} ${response.url()}`); });
   await page.goto(baseURL);
+  const html = await page.content();
+  expect(html).not.toContain('/src/');
+  expect(html).toContain('./site-assets/');
   await page.waitForFunction(() => window.showcase);
   await expect(page.locator('#loading')).toBeHidden();
   expect(await page.locator('main').evaluate(el => getComputedStyle(el).display)).toBe('grid');
@@ -21,7 +24,7 @@ test('production deployment loads styles, bundles and interactive 3D under a pro
 });
 
 test('failed bundle loading offers retry instead of an indefinite spinner', async ({ page, baseURL }) => {
-  await page.route('**/assets/main-*.js', route => route.abort());
+  await page.route('**/site-assets/main-*.js', route => route.abort());
   await page.goto(baseURL);
   await expect(page.locator('#loading')).toContainText('3D files could not load');
   await expect(page.getByRole('button', { name: 'Retry showcase' })).toBeVisible();

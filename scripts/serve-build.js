@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const root = fileURLToPath(new URL('../dist/', import.meta.url));
+const root = fileURLToPath(new URL('../', import.meta.url));
 const prefix = '/secha-jourimanzky-wardrobe/';
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
 createServer(async (req, res) => {

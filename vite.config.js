@@ -1,4 +1,11 @@
 import { defineConfig } from 'vite';
-
-// Relative URLs work on both a domain root and a GitHub Pages project path.
-export default defineConfig({ base: './' });
+import { fileURLToPath } from 'node:url';
+export default defineConfig({
+  root: fileURLToPath(new URL('./app/', import.meta.url)),
+  base: './',
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true,
+    assetsDir: 'site-assets',
+  },
+});

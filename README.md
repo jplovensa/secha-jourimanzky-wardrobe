@@ -15,23 +15,20 @@ For a production build: `npm run build`, then `npm run preview`. Deploy the gene
 
 ## GitHub Pages deployment
 
-Do not serve the repository root as plain static files: it contains Vite source,
-including npm module imports that browsers cannot resolve directly. Deploy the
-**built `dist/` directory**. Relative asset URLs support the project path
-`/secha-jourimanzky-wardrobe/` and domain-root hosting.
+The repository root now contains a ready-to-serve production app: `index.html`,
+`site-assets/`, and `.nojekyll`. This supports the existing **Deploy from a branch →
+main → / (root)** Pages configuration. No runtime npm imports or CDN dependencies
+are needed by the deployed page.
 
-1. In repository **Settings → Pages → Build and deployment**, select **GitHub Actions**.
-2. In **Actions**, select **Build and deploy wardrobe to GitHub Pages** and use **Run workflow** on `main`.
-3. Wait for the deploy job to finish, then reload the Pages URL.
+Editable source is in `app/`. Run `npm run dev` for development. After source
+changes, run `npm run build` and commit both the source and regenerated root
+`index.html` / `site-assets/`. Do not edit generated bundles directly.
+Previous hashed bundles are retained for already-open pages during updates.
 
-The workflow builds with `npm ci`, tests the model, and uploads only `dist/`.
-It is manual so committing changes does not publish without an explicit action.
-No environment publication is involved.
-
-`npm run test:production` checks stylesheet loading, asset responses, WebGL,
-and interactions on a strict static server at the actual project subpath.
-A failed application import now displays a loading error instead of spinning forever;
-the stylesheet loads independently of the Three.js bundle.
+The optional GitHub Actions workflow also supports deploying `dist/`. Both
+outputs use relative URLs for the project path and domain-root hosting.
+`npm run test:production` tests the actual repository root with a plain static
+server under `/secha-jourimanzky-wardrobe/`, without Vite or an HTML fallback.
 
 ## Presentation
 
