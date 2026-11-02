@@ -13,6 +13,7 @@ await cp(new URL('dist/site-assets/', root), new URL('site-assets/', root), { re
 await cp(new URL('dist/media/', root), new URL('media/', root), { recursive: true });
 await cp(new URL('dist/models/', root), new URL('models/', root), { recursive: true });
 await cp(new URL('dist/views/', root), new URL('views/', root), { recursive: true });
+await cp(new URL('dist/fonts/', root), new URL('fonts/', root), { recursive: true });
 await writeFile(new URL('index.html', root), html);
 await writeFile(new URL('.nojekyll', root), '');
 console.log(`Static Pages entry prepared at ${fileURLToPath(root)}index.html`);

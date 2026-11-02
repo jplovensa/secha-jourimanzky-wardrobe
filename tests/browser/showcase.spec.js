@@ -14,7 +14,7 @@ test('realistic scene retains material, lighting, props and image export control
 test('mobile floorplan and furniture editor fit the viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/');await page.waitForFunction(()=>window.showcase?.getState().frames>0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
- await page.getByRole('button',{name:'Floor plan',exact:false}).click();await expect(page.locator('#view-label')).toHaveText('FLOOR PLAN');
- await page.getByRole('button',{name:'Edit furniture layout',exact:false}).click();await expect(page.locator('#layout-editor')).toBeVisible();
+ await page.locator('[data-mobile-tool="views"]').click();await page.getByRole('button',{name:'Floor plan',exact:false}).click();await expect(page.locator('#view-label')).toHaveText('FLOOR PLAN');
+ await page.locator('[data-mobile-tool="edit"]').click();await expect(page.locator('#layout-editor')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);await page.screenshot({path:'/tmp/wardrobe-mobile.png',fullPage:true});
 });

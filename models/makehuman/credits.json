@@ -31,8 +31,8 @@
       ]
     }
   },
-  "conversion": "HM08 base mesh; original rig-weight arm relaxation; MakeClothes MHCLO barycentric fitting; Blender surface smoothing and static GLB export. No animation or external runtime textures.",
+  "conversion": "HM08 base mesh and 163-bone skeleton; normalized MakeHuman skin weights; MakeClothes MHCLO barycentric fitting and mapped skin weights; Blender surface smoothing and skinned GLB export. Joint actions and navigation run locally in Three.js.",
   "materials": "Body, clothes, hair and shoes use local PBR colours. Brown eye texture is the original CC0 MakeHuman texture. Source LFS diffuse/normal textures were unavailable and are not represented as included.",
   "anthropometry": "One adult base shape, uniformly scaled. Not a scan of a real person or a range of body types.",
-  "sha256": "8fbc435868cc775dd3904faa8d00c9c1ea84cbba6f7e70659dc0bf3037997e4b"
+  "sha256": "cb768480175d39f348ce52f1f22a943b88e73315ef58189684a735e7667c80b8"
 }

@@ -7,6 +7,7 @@ No MakeHuman program logic is redistributed; this script implements the asset ma
 import argparse,json,math,re,sys
 from pathlib import Path
 import bpy,numpy as np
+from mathutils import Quaternion, Vector
 p=argparse.ArgumentParser();p.add_argument('--makehuman',required=True);p.add_argument('--assets',required=True);p.add_argument('--output',required=True)
 a=p.parse_args(sys.argv[sys.argv.index('--')+1:]);core=Path(a.makehuman)/'makehuman/data';assets=Path(a.assets)/'base';out=Path(a.output).resolve();out.parent.mkdir(parents=True,exist_ok=True)
 def obj(path):
@@ -21,26 +22,11 @@ def obj(path):
    refs=[x.split('/')for x in s[1:]];faces.append(([int(x[0])-1 for x in refs],[int(x[1])-1 if len(x)>1 and x[1] else 0 for x in refs],group))
  return {'v':np.array(vertices),'uv':uv,'faces':faces}
 base=obj(core/'3dobjs/base.obj');original=base['v'];rig=json.loads((core/'rigs/default.mhskel').read_text());weights=json.loads((core/'rigs/default_weights.mhw').read_text())['weights']
-# Relax both arms using the original MakeHuman rig's graded vertex influences.
+# Keep the original MakeHuman graded skin weights for all joints.
 boneNames=list(weights);boneWeights=np.zeros((len(boneNames),len(original)))
 for row,bone in enumerate(boneNames):
  for index,value in weights[bone]:boneWeights[row,index]=value
 boneWeights/=np.maximum(boneWeights.sum(axis=0),1e-9)
-armWeights=[];armRows=[];pivots=[];rotations=[]
-for side,angle in [('L',-34),('R',34)]:
- root='upperarm01.'+side
- def below(name):
-  while name:
-   if name==root:return True
-   name=rig['bones'][name]['parent']
-  return False
- rows=[i for i,bone in enumerate(boneNames)if below(bone)];armRows.append(rows)
- armWeights.append(boneWeights[rows].sum(axis=0));pivots.append(original[rig['joints'][rig['bones'][root]['head']]].mean(axis=0))
- t=math.radians(angle);rotations.append(np.array([[math.cos(t),-math.sin(t),0],[math.sin(t),math.cos(t),0],[0,0,1]]))
-def pose(vertices,influences):
- result=vertices.copy()
- for w,pivot,rotation in zip(influences,pivots,rotations):result+=((vertices-pivot)@rotation.T+pivot-vertices)*w[:,None]
- return result
 mask=set();parts=[]
 def fit(path,name):
  path=Path(path);meta=path.read_text().splitlines();rows=[];scales=np.ones(3);inside=False;deleting=False
@@ -73,26 +59,52 @@ def fit(path,name):
  fitted=(original[refs]*bary[:,:,None]).sum(axis=1)+offset*scales
  mapped=np.maximum((boneWeights[:,refs]*bary[None,:,:]).sum(axis=2),0)
  mapped/=np.maximum(mapped.sum(axis=0),1e-9)
- influence=[mapped[rows].sum(axis=0)for rows in armRows]
- mesh['v']=pose(fitted,influence);mesh['name']=name;parts.append(mesh)
+ mesh['v']=fitted;mesh['weights']=mapped;mesh['name']=name;parts.append(mesh)
 fit(assets/'clothes/male_casualsuit02/male_casualsuit02.mhclo','MakeClothes casual shirt and trousers')
 fit(assets/'clothes/shoes01/shoes01.mhclo','MakeClothes shoes')
 fit(assets/'hair/short01/short01.mhclo','MakeHuman short hair')
 fit(assets/'eyebrows/eyebrow001/eyebrow001.mhclo','MakeHuman eyebrows')
 fit(core/'eyes/low-poly/low-poly.mhclo','MakeHuman brown eyes')
-body={**base,'v':pose(original,armWeights),'name':'MakeHuman HM08 body','faces':[face for face in base['faces']if face[2]=='body' and not any(i in mask for i in face[0])]};parts.insert(0,body)
+body={**base,'v':original,'weights':boneWeights,'name':'MakeHuman HM08 body','faces':[face for face in base['faces']if face[2]=='body' and not any(i in mask for i in face[0])]};parts.insert(0,body)
 # Normalize the clothed head-to-sole bounds to 1.700 m; omit helper/joint geometry.
 allv=np.concatenate([part['v'][np.unique([i for face in part['faces']for i in face[0]])]for part in parts]);low=allv.min(axis=0);high=allv.max(axis=0);scale=1.7/(high[1]-low[1]);center=(low+high)/2;center[1]=low[1]
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+# Export the genuine MakeHuman skeleton and mapped MakeClothes skin weights.
+# Runtime actions pose these joints; clothing and shoes deform with the body.
+armature=bpy.data.armatures.new('MakeHuman HM08 rig')
+rig_object=bpy.data.objects.new('MakeHuman interactive skeleton',armature)
+bpy.context.collection.objects.link(rig_object)
+bpy.context.view_layer.objects.active=rig_object;rig_object.select_set(True)
+bpy.ops.object.mode_set(mode='EDIT')
+def convert(point):
+ v=(np.asarray(point)-center)*scale
+ return Vector((float(v[0]),float(-v[2]),float(v[1])))
+for name,bone in rig['bones'].items():
+ edit=armature.edit_bones.new(name)
+ edit.head=convert(original[rig['joints'][bone['head']]].mean(axis=0))
+ edit.tail=convert(original[rig['joints'][bone['tail']]].mean(axis=0))
+ if (edit.tail-edit.head).length<.0001:edit.tail=edit.head+Vector((0,0,.001))
+for name,bone in rig['bones'].items():
+ if bone['parent']:armature.edit_bones[name].parent=armature.edit_bones[bone['parent']]
+bpy.ops.object.mode_set(mode='OBJECT')
+# The same relaxed arm stance as the static figure, expressed as skeletal pose.
+for side,angle in [('L',-34),('R',34)]:
+ bone=rig_object.pose.bones['upperarm01.'+side]
+ axis=bone.bone.matrix_local.to_quaternion().inverted()@Vector((0,-1,0))
+ bone.rotation_mode='QUATERNION';bone.rotation_quaternion=Quaternion(axis,math.radians(angle))
+
 def material(name,color,roughness=.7):
  m=bpy.data.materials.new(name);m.use_nodes=True;n=m.node_tree.nodes.get('Principled BSDF');n.inputs['Base Color'].default_value=(*color,1);n.inputs['Roughness'].default_value=roughness;return m
 skin=material('MakeHuman skin / local PBR material',(.48,.28,.19),.58);skin.node_tree.nodes.get('Principled BSDF').inputs['Subsurface Weight'].default_value=.08
 shirt=material('MakeClothes warm cotton',(.64,.59,.50),.95);trousers=material('MakeClothes charcoal trousers',(.045,.049,.048),.9);shoes=material('MakeClothes brown shoes',(.07,.035,.018),.58);hair=material('MakeHuman hair / local PBR material',(.029,.018,.012),.8)
 eye=material('MakeHuman brown eyes',(.8,.8,.8),.28);image=bpy.data.images.load(str(core/'eyes/materials/brown_eye.png'));image.scale(512,512);image.pack();tex=eye.node_tree.nodes.new('ShaderNodeTexImage');tex.image=image;eye.node_tree.links.new(tex.outputs['Color'],eye.node_tree.nodes.get('Principled BSDF').inputs['Base Color'])
 for part in parts:
- points=(part['v']-center)*scale
+ used=np.unique([i for face in part['faces']for i in face[0]])
+ remap={int(old):new for new,old in enumerate(used)}
+ part['weights']=part['weights'][:,used]
+ points=(part['v'][used]-center)*scale
  # Blender is Z-up; exporter maps this back to glTF X/Y/Z = MH X/Y/Z.
- coords=[(float(v[0]),float(-v[2]),float(v[1]))for v in points];faces=[face[0]for face in part['faces']]
+ coords=[(float(v[0]),float(-v[2]),float(v[1]))for v in points];faces=[[remap[i]for i in face[0]]for face in part['faces']]
  mesh=bpy.data.meshes.new(part['name']);mesh.from_pydata(coords,[],faces);mesh.update();obj3=bpy.data.objects.new(part['name'],mesh);bpy.context.collection.objects.link(obj3)
  uv=mesh.uv_layers.new(name='MakeHuman UV')
  for polygon,source in zip(mesh.polygons,part['faces']):
@@ -108,6 +120,13 @@ for part in parts:
   if len(mats)>1:polygon.material_index=part['materialIndices'][poly_idx]
  if 'hair' not in part['name']and 'eyebrows' not in part['name']:
   modifier=obj3.modifiers.new('Surface smoothing','SUBSURF');modifier.levels=1;modifier.render_levels=1
+ for row,name in enumerate(boneNames):
+  indices=np.flatnonzero(part['weights'][row]>.00001)
+  if len(indices):
+   group=obj3.vertex_groups.new(name=name)
+   for index in indices:group.add([int(index)],float(part['weights'][row,index]),'REPLACE')
+ modifier=obj3.modifiers.new('MakeHuman skin deformation','ARMATURE');modifier.object=rig_object
+ obj3.parent=rig_object
  obj3['asset_source']='MakeHuman HM08 / MakeClothes MHCLO';obj3['license']='CC0-1.0'
-bpy.ops.export_scene.gltf(filepath=str(out),export_format='GLB',export_yup=True,export_apply=True,export_extras=True,export_animations=False)
+bpy.ops.export_scene.gltf(filepath=str(out),export_format='GLB',export_yup=True,export_apply=True,export_extras=True,export_animations=False,export_skins=True,export_rest_position_armature=False)
 print('CLOTHED FIGURE EXPORTED',out,out.stat().st_size,'bytes; source scale',scale)

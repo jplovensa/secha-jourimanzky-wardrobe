@@ -6,7 +6,7 @@ import { resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const prefix = '/secha-jourimanzky-wardrobe/';
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.jpg': 'image/jpeg', '.glb':'model/gltf-binary', '.json':'application/json', '.txt':'text/plain' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.mp4': 'video/mp4', '.jpg': 'image/jpeg', '.glb':'model/gltf-binary', '.json':'application/json', '.txt':'text/plain', '.woff2':'font/woff2' };
 createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');

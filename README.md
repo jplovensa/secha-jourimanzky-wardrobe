@@ -86,7 +86,7 @@ The figure uses **actual CC0 MakeHuman and MakeClothes-format assets**, not prim
 stand-ins: HM08 body, original graded rig weights, casual shirt/trousers, shoes,
 short hair, eyebrows and brown-eye mesh/texture. Arms are relaxed through normalised
 rig influences. MHCLO barycentric references fit the clothes to the body before
-Blender exports the static GLB. Body/cloth/hair/shoe surface materials are local PBR
+Blender exports the skinned GLB with the genuine 163-bone skeleton and garment skin weights. Body/cloth/hair/shoe surface materials are local PBR
 colours; the upstream Git LFS texture download was denied and those diffuse/normal
 textures are not included. No MakeHuman application code is bundled in the website.
 
@@ -105,6 +105,31 @@ npm run build
 Update the model checksum in credits after regeneration. Blender is only required
 to regenerate the asset; normal development and builds use the checked-in GLB.
 If the GLB fails to load, the room remains usable and the figure can be retried.
+
+## Interactive human and mobile controls
+
+The live character toolbar runs actual joint motion and scene interactions:
+**Move shoes** walks to the entrance rack, picks up a pair and places it beside its
+original spot; **Take clothes** lifts a lower-rail garment into the aisle and
+returns it to the rail. Select an individual shoe/garment and use **Let the figure
+move this** to act on that item. **Walk here** makes the next floor click/tap a
+destination. Routes use the current furniture meshes and avoid blocked floor
+positions; an unreachable item reports that a clear route is needed.
+**Sit down** uses a temporary fitting seat in the aisle (450 mm high at the default
+1700 mm body scale). It is a routine prop, scales with the figure and disappears
+on Stand, view changes, editing, or discovery. It is not part of the measured set-out.
+Stand, changing figure parameters, hiding the figure or entering another mode
+cancels an action and restores any item still in the figure's hand. Completed
+shoe/garment moves remain until Reset space. Joint motion stops when an action
+settles so idle scenes retain on-demand rendering. The controls are an illustrative
+spatial routine rather than cloth physics or certified reach/clearance analysis.
+
+Inter is self-hosted from `@fontsource-variable/inter`, with its OFL licence in
+`app/public/fonts/inter-OFL.txt`. Every primary tool uses the same local SVG stroke
+icons. On phones the room is first, with a fixed Views/Finishes/Human/Edit dock,
+scrollable controls sheets, safe-area spacing, 44 px primary targets, a focus trap
+and Escape/scrim dismissal. Expand maximises the room without a browser fullscreen
+permission prompt. Furniture editing and the discovery trail remain available.
 
 ## Furniture revisions
 

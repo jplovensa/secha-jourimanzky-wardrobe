@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 async function openEditor(page){
  await page.goto('./');await page.waitForFunction(()=>window.showcase?.getState().frames>0);
- await page.getByRole('button',{name:'Edit furniture layout',exact:false}).click();
+ if(page.viewportSize().width<=650)await page.locator('[data-mobile-tool="edit"]').click();else await page.getByRole('button',{name:'Edit furniture layout',exact:false}).click();
  await page.locator('#furniture-select').selectOption('shoe-rack');
  await page.getByRole('button',{name:'Minimise panel',exact:true}).click();
  await page.waitForTimeout(250);

@@ -38,4 +38,15 @@ test('bundled human has verified CC0 provenance and embedded MakeHuman/MakeCloth
  const json=JSON.parse(file.subarray(20,20+file.readUInt32LE(12)).toString());
  assert.ok(json.meshes.some(m=>m.name.includes('HM08')));assert.ok(json.meshes.some(m=>m.name.includes('MakeClothes')));
  assert.ok(json.images.every(i=>i.bufferView!==undefined));
+ assert.ok(json.skins.some(s=>s.joints.length>=160));assert.ok(json.meshes.every(m=>m.primitives.every(p=>p.attributes.JOINTS_0!==undefined&&p.attributes.WEIGHTS_0!==undefined)));
+});
+
+import {findWalkPath} from '../app/src/human-motion.js';
+test('human floor navigation routes around furniture and rejects blocked destinations',()=>{
+ const barrier={min:{x:0,z:.8},max:{x:.9,z:1.2}};
+ const route=findWalkPath({x:.4,z:.4},{x:.4,z:1.8},[barrier]);
+ assert.ok(route?.length>2);assert.ok(route.some(p=>p.x>1.08));
+ assert.equal(findWalkPath({x:.4,z:.4},{x:.4,z:1.0},[barrier]),null);
+ assert.equal(findWalkPath({x:.4,z:.4},{x:.4,z:1.8},[{min:{x:0,z:.8},max:{x:2.022,z:1.2}}]),null);
+ assert.equal(findWalkPath({x:.4,z:.4},{x:3,z:1.8}),null);
 });

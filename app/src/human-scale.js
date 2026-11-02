@@ -1,17 +1,22 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ROOM } from './model.js';
+import {createHumanMotion} from './human-motion.js';
 export const PERSON_PLACES = Object.freeze({aisle:{x:.75,z:1.20,yaw:0},entrance:{x:.403,z:1.90,yaw:Math.PI},drawers:{x:.65,z:.98,yaw:Math.PI},shoes:{x:.85,z:1.28,yaw:.65}});
 export function headroomMM(heightMM){return Math.round(ROOM.height*1000-heightMM);}
-export function createHumanScale({scene,furniture,invalidate,onFocus}){
+export function createHumanScale({scene,furniture,assets,invalidate,onFocus,onAssetMoved}){
  const root=new THREE.Group();root.name='MakeHuman / clothed scale figure';root.visible=false;scene.add(root);
  const show=document.querySelector('#show-person'),height=document.querySelector('#person-height'),status=document.querySelector('#person-status'),retry=document.querySelector('#person-retry');
  const x=document.querySelector('#person-x'),z=document.querySelector('#person-z'),yaw=document.querySelector('#person-yaw');
- let ready=false,failed=false,view='perspective',model=null,nativeHeight=1,loading=false;
- const box=new THREE.Box3();let fit=null;
+ let ready=false,failed=false,view='perspective',model=null,nativeHeight=1,loading=false,motion=null,lastFit=0,poseDirty=true;
+ const box=new THREE.Box3(),sourceMeshes=[];let fit=null;
  function visible(){root.visible=ready&&show.checked&&!['interior','walkthrough','plan'].includes(view);document.querySelector('#person-scale-tag').hidden=!root.visible;document.querySelector('#person-view-note').hidden=!show.checked||root.visible||!ready;}
- function refreshFit(){
-  if(!ready)return;root.updateWorldMatrix(true,true);box.setFromObject(root);
+ function refreshFit(force=false){
+  if(!ready)return;
+  if(!force&&motion?.active&&performance.now()-lastFit<250)return;
+  lastFit=performance.now();root.updateMatrixWorld(true);
+  if(poseDirty||force){sourceMeshes.forEach(mesh=>{if(mesh.isSkinnedMesh){mesh.skeleton.update();mesh.computeBoundingBox();}});poseDirty=false;}
+  box.setFromObject(root);
   const collisions=[];
   for(const item of furniture){let overlap=false;item.object.updateWorldMatrix(true,true);item.object.traverse(object=>{
    if(overlap||!object.isMesh||!object.geometry)return;
@@ -28,28 +33,35 @@ export function createHumanScale({scene,furniture,invalidate,onFocus}){
   document.querySelector('#person-height-value').textContent=`${height.value} mm`;
   root.position.set(Number(x.value)/1000,0,Number(z.value)/1000);root.rotation.y=THREE.MathUtils.degToRad(Number(yaw.value));
   if(model)model.scale.setScalar(Number(height.value)/1000/nativeHeight);
-  visible();refreshFit();invalidate();
+  visible();refreshFit(true);invalidate();
  }
- function place(id){const p=PERSON_PLACES[id];x.value=Math.round(p.x*1000);z.value=Math.round(p.z*1000);yaw.value=Math.round(THREE.MathUtils.radToDeg(p.yaw));apply();}
+ function place(id){motion?.stop();const p=PERSON_PLACES[id];x.value=Math.round(p.x*1000);z.value=Math.round(p.z*1000);yaw.value=Math.round(THREE.MathUtils.radToDeg(p.yaw));apply();}
  async function load(){
   if(loading||ready)return;loading=true;failed=false;retry.hidden=true;status.textContent='Loading MakeHuman figure…';
   try{
-   const gltf=await new GLTFLoader().loadAsync(new URL('./models/makehuman/person.glb',document.baseURI).href);
-   const source=gltf.scene,b=new THREE.Box3().setFromObject(source),size=b.getSize(new THREE.Vector3()),center=b.getCenter(new THREE.Vector3());
+   const gltf=await new GLTFLoader().loadAsync(new URL('./models/makehuman/person.glb?v=interactive-rig-1',document.baseURI).href);
+   const source=gltf.scene;source.updateMatrixWorld(true);
+   source.traverse(mesh=>{if(mesh.isSkinnedMesh){mesh.skeleton.update();mesh.computeBoundingBox();}});
+   const b=new THREE.Box3().setFromObject(source),size=b.getSize(new THREE.Vector3()),center=b.getCenter(new THREE.Vector3());
    nativeHeight=size.y;if(!Number.isFinite(nativeHeight)||nativeHeight<=0)throw new Error('Figure has invalid dimensions');
    source.position.sub(new THREE.Vector3(center.x,b.min.y,center.z));model=new THREE.Group();model.add(source);root.add(model);
-   source.traverse(object=>{if(object.isMesh){object.castShadow=true;object.receiveShadow=true;}});
-   ready=true;status.textContent='MakeHuman HM08 · MakeClothes outfit · relaxed standing pose';apply();
+   source.traverse(object=>{if(object.isMesh){object.castShadow=true;object.receiveShadow=true;sourceMeshes.push(object);}});
+   ready=true;status.textContent='MakeHuman HM08 · MakeClothes outfit · interactive skeleton';apply();
+   motion=createHumanMotion({root,model,source,furniture,assets,invalidate,onFocus,onAssetMoved,onChange:()=>{
+    x.value=Math.round(root.position.x*1000);z.value=Math.round(root.position.z*1000);
+    const degrees=(Math.round(THREE.MathUtils.radToDeg(root.rotation.y))%360+360)%360;
+    let option=yaw.querySelector('[data-current]');if(![...yaw.options].some(o=>Number(o.value)===degrees)){if(!option){option=document.createElement('option');option.dataset.current='true';yaw.append(option);}option.value=degrees;option.textContent=`Current direction · ${degrees}°`;}yaw.value=degrees;visible();refreshFit(true);invalidate();
+   }});
   }catch(error){failed=true;status.textContent='The scale figure could not load. The room is still available.';retry.hidden=false;document.querySelector('.person-tools').open=true;console.warn('MakeHuman figure load failed:',error.message);}
   finally{loading=false;}
  }
- show.onchange=()=>{if(show.checked&&!ready)load();apply();};height.oninput=apply;
+ show.onchange=()=>{motion?.stop();if(show.checked&&!ready)load();apply();};height.oninput=()=>{motion?.stop();apply();};
  for(const field of [x,z,yaw])field.onchange=()=>{
-  const value=Number(field.value),max=field===yaw?360:field===x?ROOM.width*1000:ROOM.depth*1000;
+  const entered=field.value;motion?.stop();field.value=entered;const value=Number(field.value),max=field===yaw?360:field===x?ROOM.width*1000:ROOM.depth*1000;
   if(!Number.isFinite(value)||value<0||value>max){place('aisle');status.textContent='Choose a figure position inside the measured main bay.';return;}apply();
  };
  document.querySelector('#person-place').onchange=event=>place(event.target.value);
  document.querySelector('#person-focus').onclick=onFocus;retry.onclick=load;
  place('aisle');load();
- return {setView:name=>{view=name;visible();invalidate();},refreshFit,getState:()=>({ready,failed,visible:root.visible,requestedHeightMM:Number(height.value),position:root.position.toArray(),rotation:root.rotation.y,fit,source:'MakeHuman HM08 / MakeClothes MHCLO',meshCount:model?(()=>{let n=0;model.traverse(o=>{if(o.isMesh)n++;});return n;})():0})};
+ return {setView:name=>{view=name;visible();invalidate();},refreshFit,update:dt=>{const moving=motion?.update(dt)||false;if(moving)poseDirty=true;return moving;},stop:()=>motion?.stop(),start:(action,selected)=>motion?.start(action,selected),walkTo:p=>motion?.walkTo(p),get walkMode(){return motion?.walkMode||false;},getState:()=>({motion:motion?.getState(),ready,failed,visible:root.visible,requestedHeightMM:Number(height.value),position:root.position.toArray(),rotation:root.rotation.y,fit,source:'MakeHuman HM08 / MakeClothes MHCLO',meshCount:model?(()=>{let n=0;model.traverse(o=>{if(o.isMesh)n++;});return n;})():0})};
 }

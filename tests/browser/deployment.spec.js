@@ -171,9 +171,9 @@ test('measured reference angles show entrance, rear storage and shoe return',asy
 });
 
 test('failed human asset leaves the room usable and can be retried',async({page,baseURL})=>{
- await page.route('**/models/makehuman/person.glb',route=>route.abort());await page.goto(baseURL);
+ await page.route('**/models/makehuman/person.glb*',route=>route.abort());await page.goto(baseURL);
  await page.waitForFunction(()=>window.showcase?.getState().frames>0&&window.showcase.getState().person.failed);
  await expect(page.locator('#loading')).toBeHidden();await expect(page.locator('#person-retry')).toBeVisible();
- await page.unroute('**/models/makehuman/person.glb');await page.locator('#person-retry').click();await page.waitForFunction(()=>window.showcase.getState().person.ready);
+ await page.unroute('**/models/makehuman/person.glb*');await page.locator('#person-retry').click();await page.waitForFunction(()=>window.showcase.getState().person.ready);
  expect((await page.evaluate(()=>window.showcase.getState())).person.fit.heightMM).toBe(1700);
 });
