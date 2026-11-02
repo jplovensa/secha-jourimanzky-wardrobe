@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-For a production build: `npm run build`, then `npm run preview`. Deploy the generated `dist/` folder to any static host. No API keys, backend, or external texture downloads are needed.
+For a production build: `npm run build`, then `npm run preview`. Deploy the generated `dist/` folder to any static host. No API keys, backend, or external runtime downloads are needed. The MakeHuman GLB, its eye texture, and the room materials are served locally.
 
 ## GitHub Pages deployment
 
@@ -61,6 +61,50 @@ requires survey and has no invented measured geometry. Verify all dimensions on 
 - The stool is removed. Drawers, props, lighting, material options and PNG export
   remain interactive. The optional supplied MP4 is available separately as
   **Reference film**, with native playback controls.
+
+## Measured views and human scale
+
+The supplied images guide finishes and camera directions. The measured floorplan
+remains authoritative: the tall many-level shoe tower in the render is interpreted
+as visual reference; D remains the specified **1216 × 350 × 1500 mm / five levels**.
+Storage cases fit on the existing right upper shelf and mirror joints are visual
+pane divisions, subject to site measurement. The website's three gallery images
+are snapshots of this measured baseline model, with a 1700 mm figure in the entrance
+view. Click a gallery image for the live view, including furniture revisions.
+
+**Human scale & fit** controls the clothed MakeHuman HM08 figure. It is shown in
+Explore, Entrance view and Shoe return view; close-up discovery/inside/plan modes
+hide the figure to avoid camera/body overlap. Defaults are centre aisle, 1700 mm,
+facing the entrance. Height is adjustable from 1450–2000 mm; presets place the figure
+at the entrance, drawers or shoe rack. X/Z and facing can also be set directly.
+The model's actual world bounds determine overall height, headroom and approximate
+furniture overlap. This is one adult body shape, uniformly scaled, including hair
+and shoes—not an anthropometric range or a clothing-size fit simulation. Furniture
+checks use mesh bounding boxes and do not certify access or installation clearances.
+
+The figure uses **actual CC0 MakeHuman and MakeClothes-format assets**, not primitive
+stand-ins: HM08 body, original graded rig weights, casual shirt/trousers, shoes,
+short hair, eyebrows and brown-eye mesh/texture. Arms are relaxed through normalised
+rig influences. MHCLO barycentric references fit the clothes to the body before
+Blender exports the static GLB. Body/cloth/hair/shoe surface materials are local PBR
+colours; the upstream Git LFS texture download was denied and those diffuse/normal
+textures are not included. No MakeHuman application code is bundled in the website.
+
+Provenance, pinned repository commits, authors, licence and model checksum are in
+`app/public/models/makehuman/credits.json`, with full CC0 text beside it. The source
+conversion is `scripts/build-human.py`. To regenerate using matching checked-out
+source repositories (Blender 4.3.2 was used):
+
+```sh
+blender -b --threads 2 --python scripts/build-human.py -- \
+  --makehuman /path/to/makehuman --assets /path/to/makehuman-assets \
+  --output app/public/models/makehuman/person.glb
+npm run build
+```
+
+Update the model checksum in credits after regeneration. Blender is only required
+to regenerate the asset; normal development and builds use the checked-in GLB.
+If the GLB fails to load, the room remains usable and the figure can be retried.
 
 ## Furniture revisions
 

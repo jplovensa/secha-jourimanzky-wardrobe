@@ -21,3 +21,21 @@ test('revision import rejects incompatible rooms, unknown objects and invalid nu
  assert.throws(()=>validateRevision({...data,furniture:[{id:'unknown',position:[0,0,0],rotation:0}]},['chest']));
  assert.throws(()=>validateRevision({...data,furniture:[{id:'chest',position:[NaN,0,0],rotation:0}]},['chest']));
 });
+
+import {headroomMM,PERSON_PLACES} from '../app/src/human-scale.js';
+test('scale figure headroom and named positions use measured room units',()=>{
+ assert.equal(headroomMM(1700),910);assert.equal(headroomMM(2000),610);
+ for(const place of Object.values(PERSON_PLACES)){assert.ok(place.x>0&&place.x<ROOM.width);assert.ok(place.z>0&&place.z<ROOM.depth);}
+});
+
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+test('bundled human has verified CC0 provenance and embedded MakeHuman/MakeClothes geometry',()=>{
+ const file=readFileSync(new URL('../app/public/models/makehuman/person.glb',import.meta.url));
+ const credits=JSON.parse(readFileSync(new URL('../app/public/models/makehuman/credits.json',import.meta.url)));
+ assert.equal(file.subarray(0,4).toString(),'glTF');assert.equal(file.readUInt32LE(4),2);assert.equal(credits.license,'CC0-1.0');
+ assert.equal(createHash('sha256').update(file).digest('hex'),credits.sha256);
+ const json=JSON.parse(file.subarray(20,20+file.readUInt32LE(12)).toString());
+ assert.ok(json.meshes.some(m=>m.name.includes('HM08')));assert.ok(json.meshes.some(m=>m.name.includes('MakeClothes')));
+ assert.ok(json.images.every(i=>i.bufferView!==undefined));
+});

@@ -1,0 +1,38 @@
+{
+  "title": "Clothed MakeHuman scale figure",
+  "license": "CC0-1.0",
+  "authors": [
+    "MakeHuman Team",
+    "Data Collection AB",
+    "Joel Palmius",
+    "Jonas Hauquier"
+  ],
+  "sources": {
+    "body": {
+      "repository": "https://github.com/makehumancommunity/makehuman",
+      "commit": "a8bc2d54ff0ac92e78ff71431b1023eda42bf482",
+      "files": [
+        "makehuman/data/3dobjs/base.obj",
+        "makehuman/data/rigs/default.mhskel",
+        "makehuman/data/rigs/default_weights.mhw",
+        "makehuman/data/eyes/low-poly/low-poly.obj",
+        "makehuman/data/eyes/low-poly/low-poly.mhclo",
+        "makehuman/data/eyes/materials/brown_eye.png"
+      ]
+    },
+    "clothes": {
+      "repository": "https://github.com/pterameta/makehuman-assets",
+      "commit": "1f2f63338613bcbefa2c1edbc1da91128e9e0451",
+      "files": [
+        "base/clothes/male_casualsuit02",
+        "base/clothes/shoes01",
+        "base/hair/short01",
+        "base/eyebrows/eyebrow001"
+      ]
+    }
+  },
+  "conversion": "HM08 base mesh; original rig-weight arm relaxation; MakeClothes MHCLO barycentric fitting; Blender surface smoothing and static GLB export. No animation or external runtime textures.",
+  "materials": "Body, clothes, hair and shoes use local PBR colours. Brown eye texture is the original CC0 MakeHuman texture. Source LFS diffuse/normal textures were unavailable and are not represented as included.",
+  "anthropometry": "One adult base shape, uniformly scaled. Not a scan of a real person or a range of body types.",
+  "sha256": "8fbc435868cc775dd3904faa8d00c9c1ea84cbba6f7e70659dc0bf3037997e4b"
+}

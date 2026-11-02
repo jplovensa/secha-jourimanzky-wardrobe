@@ -45,7 +45,7 @@ test('WebGL failure is visible and recoverable', async ({ page, baseURL }) => {
 
 test('context loss has a recovery action and idle scenes stop redrawing', async ({ page, baseURL }) => {
   await page.goto(baseURL);
-  await page.waitForFunction(() => window.showcase?.getState().frames > 0);
+  await page.waitForFunction(() => window.showcase?.getState().frames > 0 && window.showcase.getState().person.ready);
   await page.waitForTimeout(1200);
   const before = await page.evaluate(() => window.showcase.getState().frames);
   await page.waitForTimeout(500);
@@ -137,4 +137,43 @@ test('furniture revisions support millimetres, rotation, undo, export and import
  await page.getByRole('button',{name:'Minimise panel',exact:true}).click();await expect(page.locator('#layout-editor')).toHaveClass(/minimized/);await page.screenshot({path:'/tmp/furniture-revision.png'});await page.getByRole('button',{name:'Show position fields',exact:true}).click();
  await page.getByRole('button',{name:'Reset to floorplan',exact:true}).click();await page.getByRole('button',{name:'Done editing',exact:true}).click();
  expect((await page.evaluate(()=>window.showcase.getState())).editor.active).toBe(false);
+});
+
+test('genuine clothed MakeHuman model is metre-scaled and placed within the bay',async({page,baseURL})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(baseURL);
+ await page.waitForFunction(()=>window.showcase?.getState().person.ready);
+ let state=await page.evaluate(()=>window.showcase.getState());
+ expect(state.person.meshCount).toBeGreaterThanOrEqual(6);expect(state.person.source).toContain('MakeClothes');
+ expect(state.person.fit.heightMM).toBe(1700);expect(state.person.fit.headroomMM).toBe(910);expect(state.person.fit.inside).toBe(true);expect(state.person.visible).toBe(true);
+ await page.screenshot({path:'/tmp/human-room-overview.png'});
+ await page.locator('.person-tools summary').click();
+ await page.locator('#person-height').evaluate(el=>{el.value='1900';el.dispatchEvent(new Event('input',{bubbles:true}));});
+ state=await page.evaluate(()=>window.showcase.getState());expect(state.person.fit.heightMM).toBe(1900);expect(state.person.fit.headroomMM).toBe(710);
+ await page.locator('#person-place').selectOption('entrance');state=await page.evaluate(()=>window.showcase.getState());expect(state.person.position[0]).toBeCloseTo(.403,3);expect(state.person.position[2]).toBeCloseTo(1.90,3);expect(state.person.fit.inside).toBe(true);
+ await page.locator('#person-place').selectOption('drawers');expect((await page.evaluate(()=>window.showcase.getState())).person.position[2]).toBeCloseTo(.98,3);
+ await page.locator('#person-place').selectOption('aisle');await page.locator('#show-person').uncheck();expect((await page.evaluate(()=>window.showcase.getState())).person.visible).toBe(false);
+ await page.locator('#show-person').check();await page.locator('.view-buttons [data-view="entrance"]').click();await expect(page.locator('#view-label')).toHaveText('ENTRANCE');
+ expect((await page.evaluate(()=>window.showcase.getState())).person.visible).toBe(true);await page.screenshot({path:'/tmp/human-entrance-view.png'});
+ await page.getByRole('button',{name:'Start discovery',exact:false}).click();expect((await page.evaluate(()=>window.showcase.getState())).person.visible).toBe(false);
+ await page.getByRole('button',{name:'Exit discovery',exact:true}).click();await page.getByRole('button',{name:'Explore',exact:false}).first().click();expect((await page.evaluate(()=>window.showcase.getState())).person.visible).toBe(true);
+ expect(errors).toEqual([]);
+});
+
+test('measured reference angles show entrance, rear storage and shoe return',async({page,baseURL})=>{
+ await page.setViewportSize({width:1820,height:1000});await page.goto(baseURL);await page.waitForFunction(()=>window.showcase?.getState().person.ready);
+ await page.addStyleTag({content:'main{min-height:800px;height:800px}#viewer{min-height:800px;height:800px;width:600px}aside{overflow:hidden}#viewer .viewer-top,#viewer .room-scale,#viewer #person-scale-tag,#viewer .viewer-bottom,#viewer .scene-caption{visibility:hidden!important}'});
+ for(const [mode,file]of [['entrance','entrance'],['interior','storage'],['return','shoe-return']]){
+  if(mode==='return')await page.locator('#show-person').evaluate(el=>el.click());
+  await page.locator(`.view-buttons [data-view="${mode}"]`).click();
+  await expect(page.locator('#view-label')).toHaveText(mode.toUpperCase());
+  await page.waitForTimeout(700);await page.locator('canvas').screenshot({path:`/tmp/measured-${file}.jpg`,type:'jpeg',quality:90});
+ }
+});
+
+test('failed human asset leaves the room usable and can be retried',async({page,baseURL})=>{
+ await page.route('**/models/makehuman/person.glb',route=>route.abort());await page.goto(baseURL);
+ await page.waitForFunction(()=>window.showcase?.getState().frames>0&&window.showcase.getState().person.failed);
+ await expect(page.locator('#loading')).toBeHidden();await expect(page.locator('#person-retry')).toBeVisible();
+ await page.unroute('**/models/makehuman/person.glb');await page.locator('#person-retry').click();await page.waitForFunction(()=>window.showcase.getState().person.ready);
+ expect((await page.evaluate(()=>window.showcase.getState())).person.fit.heightMM).toBe(1700);
 });
