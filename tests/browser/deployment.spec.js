@@ -177,3 +177,20 @@ test('failed human asset leaves the room usable and can be retried',async({page,
  await page.unroute('**/models/makehuman/person.glb*');await page.locator('#person-retry').click();await page.waitForFunction(()=>window.showcase.getState().person.ready);
  expect((await page.evaluate(()=>window.showcase.getState())).person.fit.heightMM).toBe(1700);
 });
+
+test('work portal opens, imports a local plan, and preserves a draft on reload', async ({page,baseURL}) => {
+  await page.goto(new URL('portal.html',baseURL).href);
+  await expect(page.getByRole('heading',{name:'Portal pekerjaan'})).toBeVisible();
+  await expect(page.locator('#scene canvas')).toBeVisible();
+  const plan={source:'Test plan',zones:[{id:'work',points:[[0,0],[2,0],[2,2],[0,2]]}],walls:[]};
+  await page.locator('#plan-file').setInputFiles({name:'test-plan.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(plan))});
+  await expect(page.locator('#source')).toHaveText('Test plan');
+  await expect(page.getByRole('button',{name:'Ruang kerja'})).toHaveAttribute('aria-pressed','true');
+  await page.getByLabel('Judul').fill('Confirm wall finish');
+  await page.getByLabel('Catatan').fill('Check the sample in daylight.');
+  await page.getByRole('button',{name:'Simpan draf di perangkat'}).click();
+  await expect(page.locator('#posts')).toContainText('Confirm wall finish');
+  await page.reload();
+  await page.getByRole('button',{name:'Ruang kerja'}).click();
+  await expect(page.locator('#posts')).toContainText('Confirm wall finish');
+});

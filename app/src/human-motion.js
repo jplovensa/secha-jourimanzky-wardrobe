@@ -54,16 +54,43 @@ export function createHumanMotion({root,model,source,furniture,assets,invalidate
   });}return result;
  }
  function prepare(){onFocus();document.querySelector('#show-person').checked=true;onChange();}
- function beginWalk(point,after=null){
-  const route=findWalkPath(root.position,point,blockers(),.22*Math.min(1.12,Number(document.querySelector('#person-height').value)/1700));
-  if(!route){say('No clear route. Move furniture or choose a clear aisle position.');return false;}
-  path=route;pending=after;phase='walking';elapsed=0;startPose=null;notify();return true;
+ function routeTo(point,obstacles=blockers()){
+  const radius=.22*Math.min(1.12,Number(document.querySelector('#person-height').value)/1700);
+  return findWalkPath(root.position,point,obstacles,radius);
  }
- function walkTo(point){prepare();stop();routine='walk';walkMode=false;if(beginWalk(point)){controls();say('Walking to your point');}else routine=null;controls();}
- function worldPoint(o,offset=new THREE.Vector3()){return o.localToWorld(offset.clone());}
- function chooseAsset(type,selected){
-  if(selected&&((type==='clothes'&&selected.userData.kind==='garment')||(type==='shoes'&&selected.userData.name==='The perfect pair')))return selected;
-  return assets.filter(a=>{const y=a.getWorldPosition(new THREE.Vector3()).y;return type==='clothes'?a.userData.kind==='garment'&&y<1.2&&a.getWorldPosition(new THREE.Vector3()).x<.5:a.userData.name==='The perfect pair'&&y>1&&y<1.3;}).sort((a,b)=>Math.abs(a.getWorldPosition(new THREE.Vector3()).z-1.2)-Math.abs(b.getWorldPosition(new THREE.Vector3()).z-1.2))[0];
+ function beginWalk(route,after=null){
+  path=route;pending=after;phase='walking';elapsed=0;startPose=null;notify();
+ }
+ const noRoute='No clear route. Move furniture or choose a clear aisle position.';
+ function walkTo(point){
+  const route=routeTo(point);
+  if(!route){say(noRoute);return;}
+  stop();routine='walk';beginWalk(route);controls();say('Walking to your point');
+ }
+ function chooseReachableAsset(type,selected){
+  const matches=object=>type==='clothes'?object?.userData.kind==='garment':object?.userData.name==='The perfect pair';
+  const objects=matches(selected)?[selected]:assets.filter(matches);
+  const obstacles=blockers(),candidates=[];
+  for(const object of objects){
+   const target=object.getWorldPosition(new THREE.Vector3());
+   const reachHeight=type==='clothes'?1.05:1.16;
+   if(!selected&&Math.abs(target.y-reachHeight)>.24)continue;
+   const orientation=object.parent.getWorldQuaternion(new THREE.Quaternion());
+   const sideRail=type==='clothes'&&object.userData.slide?.axis==='z';
+   const forward=sideRail?new THREE.Vector3(1,0,0):new THREE.Vector3(0,0,type==='shoes'?-1:1);
+   const lateral=new THREE.Vector3(forward.z,0,-forward.x);
+   for(const offset of [0,.18,-.18]){
+    const approach=forward.clone().multiplyScalar(.52).addScaledVector(lateral,offset).applyQuaternion(orientation);
+    const goal={x:target.x+approach.x,z:target.z+approach.z};
+    const route=routeTo(goal,obstacles);
+    if(!route)continue;
+    const distance=route.reduce((total,point,index)=>{const from=route[index-1]??root.position;return total+Math.hypot(point.x-from.x,point.z-from.z);},0);
+    const score=distance+.50*Math.abs(target.y-reachHeight)+Math.abs(offset);
+    candidates.push({object,target,route,score});
+   }
+  }
+  candidates.sort((a,b)=>a.score-b.score);
+  return candidates[0];
  }
  function start(action,selected){
   if(action==='stand'&&phase==='seated'){phase='rising';routine='stand';elapsed=0;controls();say('Standing up');invalidate();return;}
@@ -72,25 +99,24 @@ export function createHumanMotion({root,model,source,furniture,assets,invalidate
   if(action==='walk'){walkMode=true;routine='walk';controls();say('Tap a clear spot on the floor to walk there');notify();return;}
   routine=action;controls();
   if(action==='sit'){
-   if(!beginWalk({x:.65,z:1.12},()=>{phase='sitting';elapsed=0;root.rotation.y=0;sitPose(0);seat.visible=true;say('Sitting on the temporary fitting seat');}))routine=null;
+   const route=routeTo({x:.65,z:1.12});
+   if(!route){stop(noRoute);return;}
+   beginWalk(route,()=>{phase='sitting';elapsed=0;root.rotation.y=0;sitPose(0);seat.visible=true;say('Sitting on the temporary fitting seat');});
   }else{
-   const object=chooseAsset(action,selected);if(!object){stop('No suitable item is available');return;}
-   object.updateWorldMatrix(true,true);const target=object.getWorldPosition(new THREE.Vector3());
-   const approach=action==='shoes'?new THREE.Vector3(0,0,.53).applyQuaternion(object.getWorldQuaternion(new THREE.Quaternion())):new THREE.Vector3(-.55,0,0).applyQuaternion(object.parent.getWorldQuaternion(new THREE.Quaternion()));
-   // Rear-return garments have their hangers rotated 90°.
-   if(action==='clothes'&&object.userData.slide?.axis==='x')approach.set(0,0,.55).applyQuaternion(object.parent.getWorldQuaternion(new THREE.Quaternion()));
-   const goal={x:target.x+approach.x,z:target.z+approach.z};
-   if(!beginWalk(goal,()=>{
+   const candidate=chooseReachableAsset(action,selected);
+   if(!candidate){stop(noRoute);return;}
+   const {object,target,route}=candidate;
+   beginWalk(route,()=>{
     phase='interacting';elapsed=0;root.rotation.y=Math.atan2(target.x-root.position.x,target.z-root.position.z);
     prop={object,position:object.position.clone(),quaternion:object.quaternion.clone(),origin:target.clone()};
     startPose=target.clone();if(action==='shoes')startPose.y+=.07;
     finalPoint=startPose.clone();
     const shift=action==='shoes'?new THREE.Vector3(.10,0,0).applyQuaternion(object.parent.getWorldQuaternion(new THREE.Quaternion())):new THREE.Vector3(0,0,.06).applyQuaternion(object.parent.getWorldQuaternion(new THREE.Quaternion()));
     finalPoint.add(shift);
-    if(action==='clothes'&&object.userData.slide){const axis=object.userData.slide.axis,local=object.position.clone();local[axis]=THREE.MathUtils.clamp(local[axis]+.06,object.userData.slide.min,object.userData.slide.max);finalPoint=worldPoint(object.parent,local);}
+    if(action==='clothes'&&object.userData.slide){const axis=object.userData.slide.axis,local=object.position.clone();local[axis]=THREE.MathUtils.clamp(local[axis]+.06,object.userData.slide.min,object.userData.slide.max);finalPoint=object.parent.localToWorld(local);}
     holdPoint=root.localToWorld(new THREE.Vector3(-.18,1.07*model.scale.x,.32));
     say(action==='shoes'?'Picking up and repositioning the shoes':'Taking a garment from the rail');
-   })){routine=null;controls();}
+   });
   }
  }
  // CCD at the genuine shoulder and elbow joints; the hand and prop share a point.

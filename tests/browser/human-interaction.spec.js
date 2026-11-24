@@ -42,9 +42,9 @@ test('touch walking reaches the tapped floor point and cancelling a routine rest
  async function tap(point){await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
  async function tapControl(selector){const b=await page.locator(selector).boundingBox();await tap({x:b.x+b.width/2,y:b.y+b.height/2});}
  await page.goto('./');await page.waitForFunction(()=>window.showcase?.getState().person.motion?.boneCount>100);
- await tapControl('[data-person-action="walk"]');const point=await page.evaluate(()=>window.showcase.floorScreen(.45,1.40));await tap(point);
+ await tapControl('[data-person-action="walk"]');const point=await page.evaluate(()=>window.showcase.floorScreen(.95,1.40));await tap(point);
  await page.waitForFunction(()=>window.showcase.getState().person.motion.lastAction==='walk');
- let state=await page.evaluate(()=>window.showcase.getState());expect(state.person.position[0]).toBeCloseTo(.45,2);expect(state.person.position[2]).toBeCloseTo(1.4,2);
+ let state=await page.evaluate(()=>window.showcase.getState());expect(state.person.position[0]).toBeCloseTo(.95,2);expect(state.person.position[2]).toBeCloseTo(1.4,2);
  const before=state.assetPositions;await tapControl('[data-person-action="clothes"]');await page.waitForFunction(()=>window.showcase.getState().person.motion.carrying);
  await tapControl('[data-person-action="stand"]');state=await page.evaluate(()=>window.showcase.getState());expect(state.person.motion.phase).toBe('idle');expect(state.person.motion.carrying).toBe(false);expect(state.assetPositions).toEqual(before);expect(state.person.fit.heightMM).toBe(1700);
  await cdp.detach();
