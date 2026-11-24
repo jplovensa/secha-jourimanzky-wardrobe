@@ -107,7 +107,7 @@ $('plan-file').onchange=async(event)=>{
  try{
    const file=event.target.files[0];if(!file)return;if(file.size>40000)throw Error();
    const data=JSON.parse(await file.text());if(!valid(data))throw Error();
-   display(data);$('notice').textContent='Denah dimuat di perangkat ini.'; 
+   display(data);$('notice').textContent='Denah dimuat di perangkat ini.';
  }catch{$('notice').textContent='File denah tidak dapat dibaca. Pilih JSON denah proyek.';}
  finally{event.target.value='';}
 };
