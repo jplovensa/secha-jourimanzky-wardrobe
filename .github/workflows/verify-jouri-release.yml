@@ -1,0 +1,28 @@
+name: Verify Jourimanzky release
+on:
+  push:
+    branches:
+      - verify/jouri-portal-release
+permissions:
+  contents: read
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Run Chromium browser tests
+        run: |
+          export CHROMIUM_PATH="$(node -p "require('playwright').chromium.executablePath()")"
+          npm run test:production -- --fully-parallel --shard=${{ matrix.shard }}/6 --reporter=list --timeout=120000
