@@ -183,3 +183,18 @@ idle scenes skip rendering until controls, camera, assets, or dimensions change.
 
 Production regression tests cover blocked bundles, unavailable WebGL, context loss,
 and idle redraw suppression in addition to the normal interactive workflow.
+
+## Portal pekerjaan
+
+Open `portal.html` from the published site or the Vite development server.
+The wardrobe model follows WIC shop drawing SD-01. Optional ambalan are
+subject to scope approval. The standalone viewer retains the existing mirror.
+
+**Denah apartemen:** pilih **Muat denah**, lalu pilih `Jouri_Denah_Apartemen.json`
+yang diberikan terpisah. Denah proyek tidak disimpan di repo publik. Geometri
+apartemen dipakai untuk koordinasi visual, bukan set-out konstruksi.
+
+**Log perubahan:** pilih area dan simpan draf. Ekspor JSON untuk meninjau
+pembaruan atau mengajukannya lewat GitHub. Pertahankan semua entri terbaru
+pada `app/work-updates.json` saat menggabungkan catatan. Pembaruan bersama
+muncul setelah rebuild dan deployment. Simpan catatan privat di perangkat.

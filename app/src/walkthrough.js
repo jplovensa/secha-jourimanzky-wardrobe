@@ -1,11 +1,11 @@
 // Click-only discovery stations. No timeline, autoplay, or scripted camera motion.
 // Metres: x=0 left wall, z=0 rear, +z toward the entrance.
 export const WALK_STOPS = [
-  {id:'entrance',title:'Entrance',badge:'Wayfinder',task:'At the entrance, which wall has the full-height mirror?',event:'orientation',position:[.403,1.60,2.90],target:[.95,1.40,.45],anchor:[.403,1.45,2.05]},
-  {id:'hanging',title:'A+B · Hanging',badge:'Rail scout',task:'Click a hanging garment to inspect the two-tier L rails.',event:'garment',position:[.86,1.60,1.08],target:[1.722,1.62,.90],anchor:[1.48,1.65,1.05]},
-  {id:'drawers',title:'C · Drawers',badge:'Detail finder',task:'Click a drawer front to open it and inspect the joinery.',event:'drawerOpen',position:[.86,1.60,1.05],target:[.472,.65,.20],anchor:[.472,1.00,.42]},
+  {id:'entrance',title:'Entrance',badge:'Wayfinder',task:'At the entrance, which wall has the full-height mirror?',event:'orientation',position:[1.619,1.60,2.90],target:[.95,1.40,.45],anchor:[1.619,1.45,2.05]},
+  {id:'hanging',title:'A+B · Hanging',badge:'Rail scout',task:'Click a hanging garment to inspect the two-tier L rails.',event:'garment',position:[.86,1.60,1.08],target:[.3,1.62,.90],anchor:[.45,1.65,1.05]},
+  {id:'drawers',title:'C · Drawers',badge:'Detail finder',task:'Click a drawer front to open it and inspect the joinery.',event:'drawerOpen',position:[.86,1.60,1.05],target:[1.55,.65,.20],anchor:[1.55,1.00,.42]},
   {id:'mirror',title:'M · Mirror',badge:'Reflection seeker',task:'Click the mirror surface to discover the full left-wall reflection.',event:'mirror',position:[.80,1.60,1.15],target:[.006,1.55,1.15],anchor:[.025,1.60,1.20]},
-  {id:'shoes',title:'D · Shoes',badge:'Space stylist',task:'Click a pair of shoes, then use a move arrow to style the rack.',event:'shoeMoved',position:[.80,1.60,1.12],target:[1.414,1.08,1.982],anchor:[1.414,1.55,1.78]},
+  {id:'shoes',title:'D · Shoes',badge:'Space stylist',task:'Click a pair of shoes, then use a move arrow to style the rack.',event:'shoeMoved',position:[.80,1.60,1.12],target:[.608,1.08,1.982],anchor:[.608,1.55,1.78]},
 ];
 export function awardDiscovery(current,event){
   const result=new Set(current);

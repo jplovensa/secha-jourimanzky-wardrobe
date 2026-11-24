@@ -57,18 +57,18 @@ test('context loss has a recovery action and idle scenes stop redrawing', async 
   await expect(page.getByRole('button', { name: 'Retry showcase' })).toBeVisible();
 });
 
-test('floorplan places D at the entrance return and restores the right-hand L layout', async ({page,baseURL}) => {
+test('floorplan places D at the entrance return and matches the SD-01 left-hand L layout', async ({page,baseURL}) => {
   await page.goto(baseURL);
   await page.waitForFunction(()=>window.showcase?.getState().frames>0);
   const layout=await page.evaluate(()=>window.showcase.getState().layout);
-  expect(layout.hangingX).toBeCloseTo(1.722,3);
-  expect(layout.chestX).toBeCloseTo(.472,3);
+  expect(layout.hangingX).toBeCloseTo(.3,3);
+  expect(layout.chestX).toBeCloseTo(1.55,3);
   expect(layout.mirrorX).toBeCloseTo(.006,3);
   const rack=layout.shoeRackBounds;
-  expect(rack.min[0]).toBeCloseTo(.806,3);expect(rack.max[0]).toBeCloseTo(2.022,3);
+  expect(rack.min[0]).toBeCloseTo(0,3);expect(rack.max[0]).toBeCloseTo(1.216,3);
   expect(rack.min[2]).toBeCloseTo(1.807,3);expect(rack.max[2]).toBeCloseTo(2.157,3);
-  expect(rack.min[1]).toBeCloseTo(0,3);expect(rack.max[1]).toBeCloseTo(1.5,3);
-  expect(rack.levels).toBe(5);expect(rack.min[2]-1.75).toBeCloseTo(.057,3);
+  expect(rack.min[1]).toBeCloseTo(0,3);expect(rack.max[1]).toBeCloseTo(2.61,3);
+  expect(rack.levels).toBe(9);expect(rack.min[2]-1.75).toBeCloseTo(.057,3);
   await page.screenshot({path:'/tmp/wardrobe-layout-new.png'});
   await page.getByRole('button',{name:'Step inside',exact:false}).click();
   await page.waitForTimeout(2200);
@@ -123,15 +123,15 @@ test('measured room and click-only discovery missions',async({page,baseURL})=>{
 test('furniture revisions support millimetres, rotation, undo, export and import',async({page,baseURL})=>{
  await page.goto(baseURL);await page.waitForFunction(()=>window.showcase?.getState().frames>0);
  await page.getByRole('button',{name:'Edit furniture layout',exact:false}).click();
- await page.locator('#furniture-select').selectOption('shoe-rack');await expect(page.locator('#layout-x')).toHaveValue('806');
- await page.locator('#layout-x').fill('706');await page.locator('#layout-x').press('Tab');
- expect((await page.evaluate(()=>window.showcase.getState())).layout.shoeRackBounds.min[0]).toBeCloseTo(.706,3);
- await page.getByRole('button',{name:'Undo',exact:true}).click();await expect(page.locator('#layout-x')).toHaveValue('806');
- await page.getByRole('button',{name:'Redo',exact:true}).click();await expect(page.locator('#layout-x')).toHaveValue('706');
+ await page.locator('#furniture-select').selectOption('shoe-rack');await expect(page.locator('#layout-x')).toHaveValue('0');
+ await page.locator('#layout-x').fill('120');await page.locator('#layout-x').press('Tab');
+ expect((await page.evaluate(()=>window.showcase.getState())).layout.shoeRackBounds.min[0]).toBeCloseTo(.120,3);
+ await page.getByRole('button',{name:'Undo',exact:true}).click();await expect(page.locator('#layout-x')).toHaveValue('0');
+ await page.getByRole('button',{name:'Redo',exact:true}).click();await expect(page.locator('#layout-x')).toHaveValue('120');
  await page.locator('#layout-rotation').fill('15');await page.locator('#layout-rotation').press('Tab');await expect(page.locator('#layout-rotation')).toHaveValue('15');
  const download=page.waitForEvent('download');await page.getByRole('button',{name:'Export revision',exact:true}).click();expect((await download).suggestedFilename()).toBe('jourimanzky-layout-revision.json');
  const furniture=(await page.evaluate(()=>window.showcase.getState())).editor.furniture.map(({id,position,rotation})=>({id,position,rotation}));
- await page.getByRole('button',{name:'Reset to floorplan',exact:true}).click();await expect(page.locator('#layout-x')).toHaveValue('806');
+ await page.getByRole('button',{name:'Reset to floorplan',exact:true}).click();await expect(page.locator('#layout-x')).toHaveValue('0');
  await page.locator('#revision-file').setInputFiles({name:'revision.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({version:1,units:'mm',roomMM:[2022,2157,2610],furniture}))});
  await expect(page.locator('#revision-status')).toContainText('Revision imported');await expect(page.locator('#layout-rotation')).toHaveValue('15');
  await page.getByRole('button',{name:'Minimise panel',exact:true}).click();await expect(page.locator('#layout-editor')).toHaveClass(/minimized/);await page.screenshot({path:'/tmp/furniture-revision.png'});await page.getByRole('button',{name:'Show position fields',exact:true}).click();
@@ -149,7 +149,7 @@ test('genuine clothed MakeHuman model is metre-scaled and placed within the bay'
  await page.locator('.person-tools summary').click();
  await page.locator('#person-height').evaluate(el=>{el.value='1900';el.dispatchEvent(new Event('input',{bubbles:true}));});
  state=await page.evaluate(()=>window.showcase.getState());expect(state.person.fit.heightMM).toBe(1900);expect(state.person.fit.headroomMM).toBe(710);
- await page.locator('#person-place').selectOption('entrance');state=await page.evaluate(()=>window.showcase.getState());expect(state.person.position[0]).toBeCloseTo(.403,3);expect(state.person.position[2]).toBeCloseTo(1.90,3);expect(state.person.fit.inside).toBe(true);
+ await page.locator('#person-place').selectOption('entrance');state=await page.evaluate(()=>window.showcase.getState());expect(state.person.position[0]).toBeCloseTo(1.619,3);expect(state.person.position[2]).toBeCloseTo(1.90,3);expect(state.person.fit.inside).toBe(true);
  await page.locator('#person-place').selectOption('drawers');expect((await page.evaluate(()=>window.showcase.getState())).person.position[2]).toBeCloseTo(.98,3);
  await page.locator('#person-place').selectOption('aisle');await page.locator('#show-person').uncheck();expect((await page.evaluate(()=>window.showcase.getState())).person.visible).toBe(false);
  await page.locator('#show-person').check();await page.locator('.view-buttons [data-view="entrance"]').click();await expect(page.locator('#view-label')).toHaveText('ENTRANCE');

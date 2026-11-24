@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eeeae2"><title>Portal pekerjaan · SECHA STUDIO+</title>
+</head>
+<body>
+<header><a href="./">SECHA <strong>STUDIO+</strong></a><a href="./">Wardrobe 3D ↗</a></header>
+<main>
+<section class="intro"><p class="eyebrow">JOURIMANZKY / APARTMENT</p><h1>Portal pekerjaan</h1><p>Pilih area di model atau daftar ruang untuk melihat lingkup dan perubahan.</p></section>
+<div class="workspace">
+<section aria-label="Model apartemen" class="viewer">
+  <div class="toolbar"><button id="orbit">Perspektif</button><button id="top">Denah atas</button><label class="upload">Muat denah <input id="plan-file" type="file" accept=".json,application/json"></label></div>
+  <div id="scene"></div><p id="source">Tampilan WIC · muat file denah proyek untuk melihat apartemen lengkap.</p>
+</section>
+<aside><h2>Area</h2><div id="areas"></div><h2>Lingkup pekerjaan</h2><ul id="scope"></ul><details><summary>Lingkup umum</summary><p>Proteksi area, mobilisasi, dan pembersihan akhir. Konfirmasi kondisi dan lingkup sebelum pelaksanaan.</p></details></aside>
+</div>
+<section class="updates"><div><h2>Log perubahan</h2><div id="posts"></div></div>
+<form id="compose"><h2>Tambah perubahan</h2><label>Ruang<select id="post-room"></select></label><label>Judul<input name="title" required maxlength="100"></label><label>Status<select name="status"><option>Usulan</option><option>Disetujui</option><option>Dikerjakan</option><option>Selesai</option></select></label><label>Catatan<textarea name="detail" required maxlength="800" rows="4"></textarea></label><button>Simpan draf di perangkat</button><p>Draf tersimpan di browser ini. Ekspor JSON untuk tinjauan tim. Untuk memublikasikan pembaruan bersama, sunting <code>app/work-updates.json</code> melalui GitHub. Repo publik: gunakan hanya catatan yang boleh dibagikan secara publik.</p><button type="button" id="download">Ekspor JSON perubahan</button></form>
+</section>
+<p id="notice" role="status"></p>
+</main><script type="module" src="./src/portal.js"></script>
+</body></html>

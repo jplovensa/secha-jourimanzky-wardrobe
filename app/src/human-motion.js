@@ -63,7 +63,7 @@ export function createHumanMotion({root,model,source,furniture,assets,invalidate
  function worldPoint(o,offset=new THREE.Vector3()){return o.localToWorld(offset.clone());}
  function chooseAsset(type,selected){
   if(selected&&((type==='clothes'&&selected.userData.kind==='garment')||(type==='shoes'&&selected.userData.name==='The perfect pair')))return selected;
-  return assets.filter(a=>{const y=a.getWorldPosition(new THREE.Vector3()).y;return type==='clothes'?a.userData.kind==='garment'&&y<1.2&&a.getWorldPosition(new THREE.Vector3()).x>1.5:a.userData.name==='The perfect pair'&&y>1&&y<1.3;}).sort((a,b)=>Math.abs(a.getWorldPosition(new THREE.Vector3()).z-1.2)-Math.abs(b.getWorldPosition(new THREE.Vector3()).z-1.2))[0];
+  return assets.filter(a=>{const y=a.getWorldPosition(new THREE.Vector3()).y;return type==='clothes'?a.userData.kind==='garment'&&y<1.2&&a.getWorldPosition(new THREE.Vector3()).x<.5:a.userData.name==='The perfect pair'&&y>1&&y<1.3;}).sort((a,b)=>Math.abs(a.getWorldPosition(new THREE.Vector3()).z-1.2)-Math.abs(b.getWorldPosition(new THREE.Vector3()).z-1.2))[0];
  }
  function start(action,selected){
   if(action==='stand'&&phase==='seated'){phase='rising';routine='stand';elapsed=0;controls();say('Standing up');invalidate();return;}

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ROOM } from './model.js';
 import {createHumanMotion} from './human-motion.js';
-export const PERSON_PLACES = Object.freeze({aisle:{x:.75,z:1.20,yaw:0},entrance:{x:.403,z:1.90,yaw:Math.PI},drawers:{x:.65,z:.98,yaw:Math.PI},shoes:{x:.85,z:1.28,yaw:.65}});
+export const PERSON_PLACES = Object.freeze({aisle:{x:.75,z:1.20,yaw:0},entrance:{x:1.619,z:1.90,yaw:Math.PI},drawers:{x:1.55,z:.98,yaw:Math.PI},shoes:{x:.85,z:1.28,yaw:.65}});
 export function headroomMM(heightMM){return Math.round(ROOM.height*1000-heightMM);}
 export function createHumanScale({scene,furniture,assets,invalidate,onFocus,onAssetMoved}){
  const root=new THREE.Group();root.name='MakeHuman / clothed scale figure';root.visible=false;scene.add(root);

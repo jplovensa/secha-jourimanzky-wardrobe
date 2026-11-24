@@ -15,5 +15,6 @@ await cp(new URL('dist/models/', root), new URL('models/', root), { recursive: t
 await cp(new URL('dist/views/', root), new URL('views/', root), { recursive: true });
 await cp(new URL('dist/fonts/', root), new URL('fonts/', root), { recursive: true });
 await writeFile(new URL('index.html', root), html);
+await cp(new URL('dist/portal.html', root), new URL('portal.html', root));
 await writeFile(new URL('.nojekyll', root), '');
 console.log(`Static Pages entry prepared at ${fileURLToPath(root)}index.html`);

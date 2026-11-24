@@ -12,7 +12,7 @@ test('five discoveries require distinct real actions and award only once',()=>{
  assert.equal(awardDiscovery(progress,'unknown').size,5);assert.equal(awardDiscovery(new Set(),'orientation').size,1);
 });
 test('discovery viewpoints retain eye height and clear the entrance rack',()=>{
- for(const station of WALK_STOPS){const p=station.position;assert.equal(p[1],1.6);assert.ok(p[0]>.15&&p[0]<1.472);if(p[2]>1.807)assert.ok(p[0]<.806);}
+ for(const station of WALK_STOPS){const p=station.position;assert.equal(p[1],1.6);assert.ok(p[0]>.15&&p[0]<2.022);if(p[2]>1.807)assert.ok(p[0]>1.216);}
 });
 test('revision import rejects incompatible rooms, unknown objects and invalid numbers',()=>{
  const data={version:1,units:'mm',roomMM:[2022,2157,2610],furniture:[{id:'chest',position:[22,0,0],rotation:0}]};

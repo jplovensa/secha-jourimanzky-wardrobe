@@ -1,0 +1,17 @@
+@import '@fontsource-variable/inter';
+:root{font-family:'Inter Variable',Inter,sans-serif;color:#26332b;background:#f7f5ef;line-height:1.5}
+*{box-sizing:border-box}body{margin:0} header,main{width:min(1320px,94%);margin:auto}
+header{padding:1.15rem 0;display:flex;justify-content:space-between;border-bottom:1px solid #cdd2c8}
+a{color:#28513a;text-underline-offset:4px}header a:first-child{text-decoration:none;color:inherit;letter-spacing:.12em}
+.intro{padding:1.6rem 0 1.3rem}.intro p{margin:.3rem 0}.eyebrow{font-size:.75rem;letter-spacing:.18em}
+h1{font-weight:530;font-size:clamp(2.4rem,5vw,4.6rem);letter-spacing:-.055em;line-height:1;margin:.25rem 0 1rem}
+h2{font-size:1.13rem;margin:0 0 .7rem} .workspace,.updates{display:grid;grid-template-columns:minmax(0,2fr) minmax(265px,1fr);gap:1rem}
+.viewer,aside,.updates>div,form{border:1px solid #d6d6ca;border-radius:14px;background:#fffdf8;overflow:hidden}
+aside,.updates>div,form{padding:1rem}.toolbar{display:flex;gap:.45rem;flex-wrap:wrap;padding:.7rem;background:#f0eee5}
+button,.upload{border:1px solid #bcc8b8;background:#fffdf8;color:#213f2d;border-radius:8px;padding:.44rem .72rem;font:inherit;cursor:pointer}
+button[aria-pressed=true],form button[type=submit]{background:#2d4635;color:white}
+.upload{position:relative}.upload input{opacity:0;width:100%;height:100%;position:absolute;inset:0;cursor:pointer}
+.upload:focus-within{outline:2px solid #386b4c}#scene{height:clamp(320px,56vh,610px);position:relative;background:#e8e8de}canvas{display:block;width:100%;height:100%;touch-action:none}
+#source{margin:.6rem 1rem;color:#516357;font-size:.82rem}#areas{display:flex;gap:.42rem;flex-wrap:wrap;margin-bottom:1.15rem}#scope{padding-left:1.15rem}#scope li+li{margin-top:.45rem}
+.updates{margin:1rem 0}article{border-top:1px solid #dadfd5;padding:.75rem 0}article p{margin:.3rem 0;white-space:pre-wrap;overflow-wrap:anywhere}article small,form p{color:#506453}form p{font-size:.82rem}form label{display:grid;margin-bottom:.6rem;font-size:.85rem;gap:.22rem}form input,form textarea,form select{font:inherit;border:1px solid #bec9bc;border-radius:6px;padding:.42rem;background:white;color:inherit}#notice{min-height:1.5em}
+@media(max-width:760px){.workspace,.updates{grid-template-columns:1fr}header{font-size:.85rem}}

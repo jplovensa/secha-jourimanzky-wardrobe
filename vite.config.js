@@ -7,5 +7,6 @@ export default defineConfig({
     outDir: '../dist',
     emptyOutDir: true,
     assetsDir: 'site-assets',
+    rollupOptions: { input: { wardrobe: fileURLToPath(new URL('./app/index.html', import.meta.url)), portal: fileURLToPath(new URL('./app/portal.html', import.meta.url)) } },
   },
 });

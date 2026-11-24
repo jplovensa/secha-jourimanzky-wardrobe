@@ -1,7 +1,8 @@
+import { buildShoeRack, CHEST, RAIL_HEIGHTS, ENTRANCE } from './wardrobe-geometry.js';
 import {icon,mountIcons} from './icons.js';
 import {setupMobile} from './mobile.js';
 import { createHumanScale } from './human-scale.js';
-import { createMaterials, roundedGeometry, makeGarment, makeShoePair, makeBag, addCountertopStyling } from './realism.js';
+import { createMaterials, roundedGeometry, makeGarment, makeShoePair, makeBag } from './realism.js';
 import { createLayoutEditor } from './layout-editor.js';
 import { createWalkthrough } from './walkthrough.js';
 import { showFailure, showReady } from './startup.js';
@@ -57,34 +58,34 @@ rod([.008,0,0],[.008,2.61,0],.003,black);rod([.008,0,2.157],[.008,2.61,2.157],.0
 const mirrorFurniture=collectFurniture(mirrorStart,'mirror','Full left-wall mirror',[.006,ROOM.height/2,ROOM.depth/2]);
 const interactables=[],drawers=[],assets=[];
 function interactive(group,data){group.userData={...data,styling:['garment','asset'].includes(data.kind)};interactables.push(group);return group;}
-interactive(mirror,{kind:'fixed',name:'Full left-wall mirror',description:'Full-height mirror · 2157 × 2610 mm nominal. The measured room orientation is mirror left, hanging right.'});
+interactive(mirror,{kind:'fixed',name:'Full left-wall mirror',description:'Full-height mirror · 2157 × 2610 mm nominal. The measured room orientation is mirror left, hanging left.'});
 const chestStart=room.children.length;
 // Chest carcass and four independently moving drawers.
-box(.9,.025,.4,.472,.8875,.2,wood);box(.025,.88,.4,.034,.44,.2,wood);box(.025,.88,.4,.91,.44,.2,wood);box(.87,.85,.015,.472,.44,.012,wood);
-for(let i=0;i<4;i++){const g=new THREE.Group();g.position.set(.472,.12+i*.215,.2);room.add(g);box(.855,.19,.025,0,0,.1875,wood,g);box(.80,.025,.34,0,-.075,0,wood,g);box(.016,.14,.34,-.4,0,0,wood,g);box(.016,.14,.34,.4,0,0,wood,g);box(.81,.14,.016,0,0,-.17,wood,g);box(.16,.012,.023,0,.035,.222,brass,g);interactive(g,{kind:'drawer',name:`Drawer ${i+1}`,description:'Rear-left teak chest · 900 × 400 × 900 mm. Click to explore the assumed 350 mm drawer extension.',open:false,baseZ:.2});drawers.push(g);}
-const chestFurniture=collectFurniture(chestStart,'chest','Rear-left drawer chest',[.472,.45,.2]);
+const cx=CHEST.x;
+box(.9,.018,.4,cx,.891,.2,wood);
+box(.9,.08,.382,cx,.04,.191,wood);
+for(const x of [cx-.441,cx+.441])box(.018,.802,.382,x,.481,.191,wood);
+box(.864,.802,.009,cx,.481,.0045,wood);
+for(let i=0;i<4;i++){
+ const g=new THREE.Group();g.position.set(cx,.1855+i*.203,.2);room.add(g);
+ box(.896,.2,.018,0,0,.191,wood,g);box(.80,.025,.34,0,-.075,0,wood,g);
+ for(const x of [-.392,.392])box(.016,.14,.34,x,0,0,wood,g);
+ box(.81,.14,.016,0,0,-.17,wood,g);box(.16,.012,.023,0,.035,.211,brass,g);
+ interactive(g,{kind:'drawer',name:`Drawer ${i+1}`,description:'C01 · 900 × 400 × 900 mm · nominal drawer travel 350 mm.',open:false,baseZ:.2});drawers.push(g);
+}
+const chestFurniture=collectFurniture(chestStart,'chest','C01 / Rear-right drawer cabinet',[cx,.45,.2]);
 for(const d of drawers)d.userData.baseZ=d.position.z;
-const rearShelves=[];
-for(const [i,y] of [1.35,1.75].entries()){const start=room.children.length;box(.9,.03,.25,.472,y+.015,.125,wood);rearShelves.push(collectFurniture(start,`rear-shelf-${i+1}`,`Rear shelf ${i+1}`,[.472,y,.125]));}
 const railsStart=room.children.length;
-for(const h of [1.05,2]){rod([1.722,h,.3],[1.722,h,1.75]);rod([.972,h,.3],[1.722,h,.3]);for(const z of [.55,1.60])rod([1.722,h,z],[2.022,h,z],.009);rod([1.05,h,.0],[1.05,h,.3],.009);}
-const hangingFurniture=collectFurniture(railsStart,'hanging','Two-tier L hanging rails',[1.722,1.5,1.025]);
-let shelfStart=room.children.length;box(.35,.032,1.2,1.847,2.216,1.15,wood);
-const upperFurniture=collectFurniture(shelfStart,'right-upper-shelf','Right upper shelf + light',[1.847,2.216,1.15]);
-shelfStart=room.children.length;box(.3,.025,1.2,1.872,.1125,1.15,wood);
-const lowFurniture=collectFurniture(shelfStart,'right-low-shelf','Right low shoe shelf',[1.872,.1125,1.15]);
-const ledMat=new THREE.MeshStandardMaterial({color:'#ffebc0',emissive:'#ffda95',emissiveIntensity:1.5});upperFurniture.attach(box(.014,.006,1.14,1.69,2.196,1.15,ledMat));
-// D: retained five-level shoe rack on the entrance return, not the rear corner.
-const shoeRack=new THREE.Group();shoeRack.name='D / entrance return shoe rack';room.add(shoeRack);
-shoeRack.position.set(SHOE_RACK.x+SHOE_RACK.width/2,SHOE_RACK.height/2,SHOE_RACK.z+SHOE_RACK.depth/2);
-const panel=.023,shelfThickness=.025;
-for(const x of [-SHOE_RACK.width/2+panel/2,SHOE_RACK.width/2-panel/2])
-  box(panel,SHOE_RACK.height,SHOE_RACK.depth,x,0,0,wood,shoeRack);
-for(let i=0;i<SHOE_RACK.levels;i++)
-  box(SHOE_RACK.width,shelfThickness,SHOE_RACK.depth,0,shelfThickness/2+i*(SHOE_RACK.height-shelfThickness)/(SHOE_RACK.levels-1)-SHOE_RACK.height/2,0,wood,shoeRack);
-registerFurniture(shoeRack,'shoe-rack','D / Entrance shoe cabinet');
-// Full-height entrance return uses the plan's 806 mm opening. Cut away in Explore.
-const entranceReturn=box(SHOE_RACK.width,ROOM.height,.07,1.414,ROOM.height/2,ROOM.depth+.035,wall);
+for(const h of RAIL_HEIGHTS){
+ rod([.3,h,.3],[.3,h,1.75]);rod([.3,h,.3],[1.05,h,.3]);
+ for(const z of [.55,1.60])rod([.3,h,z],[0,h,z],.009);
+ rod([.95,h,0],[.95,h,.3],.009);
+}
+const hangingFurniture=collectFurniture(railsStart,'hanging','H01 / Two-tier L hanging rails',[.3,1.5,1.025]);
+const rackStart=room.children.length;
+const shelfTops=buildShoeRack(box,wood);
+const shoeRack=collectFurniture(rackStart,'shoe-rack','S01 / Open shoe rack',[.608,1.305,1.982]);
+const entranceReturn=box(SHOE_RACK.width,ROOM.height,.07,.608,ROOM.height/2,ROOM.depth+.035,wall);
 const ceiling=box(ROOM.width,.035,ROOM.depth,ROOM.width/2,ROOM.height+.0175,ROOM.depth/2,wall);ceiling.visible=false;
 for(const z of [-.50,.50]){
  const trim=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.004,24),black);trim.position.set(-.15,-.0195,z);ceiling.add(trim);
@@ -92,25 +93,13 @@ for(const z of [-.50,.50]){
  const light=new THREE.PointLight('#ffe2b0',.65,3,2);light.position.set(-.15,-.08,z);ceiling.add(light);
 }
 const garmentColors=['#ded3bc','#9c9d8a','#b5a69a','#eee7d9','#595e54','#9b846f'];
-function garment(x,y,z,angle,color){const g=makeGarment(color,materials);g.position.set(x,y,z);g.rotation.y=angle;room.add(g);hangingFurniture.attach(g);interactive(g,{kind:'garment',name:'Everyday linen',description:'Soft woven fabric on the two-tier L rails at 1050 / 2000 mm AFF. Select garments to discover the hanging zone.',slide:angle===0?{axis:'z',min:.57-1.025,max:1.65-1.025}:{axis:'x',min:.99-1.722,max:1.66-1.722},origin:g.position.clone()});assets.push(g);}
-for(const h of [1.05,2]){for(let i=0;i<7;i++)garment(1.722,h,.66+i*.143,0,garmentColors[i%6]);for(let i=0;i<3;i++)garment(1.07+i*.18,h,.3,Math.PI/2,garmentColors[(i+2)%6]);}
+function garment(x,y,z,angle,color){const g=makeGarment(color,materials);g.position.set(x,y,z);g.rotation.y=angle;room.add(g);hangingFurniture.attach(g);interactive(g,{kind:'garment',name:'Everyday linen',description:'Soft woven fabric on the two-tier L rails at 1050 / 2000 mm AFF. Select garments to discover the hanging zone.',slide:angle===0?{axis:'z',min:.57-1.025,max:1.65-1.025}:{axis:'x',min:.44-.3,max:1.01-.3},origin:g.position.clone()});assets.push(g);}
+for(const h of [1.05,2]){for(let i=0;i<7;i++)garment(.3,h,.66+i*.143,0,garmentColors[i%6]);for(let i=0;i<3;i++)garment(.48+i*.18,h,.3,Math.PI/2,garmentColors[(i+2)%6]);}
 function shoe(x,y,z,color,parent=shoeRack){const g=makeShoePair(color,materials);g.rotation.y=parent===shoeRack?Math.PI:-Math.PI/2;g.position.set(x,y,z);room.add(g);parent.attach(g);interactive(g,{kind:'asset',name:'The perfect pair',description:'Leather uppers, inset lining and rounded soles. Use the move arrows or drag to style this pair.',origin:g.position.clone()});assets.push(g);}
-for(let i=0;i<4;i++)for(let j=0;j<3;j++)shoe(.99+j*.36,.025+i*(SHOE_RACK.height-.025)/4,1.982,['#6b5745','#aa8964','#383c35'][j]);
-shoe(1.86,.13,.88,'#b3a48b',lowFurniture);
-function bag(x,y,z,parent){const g=makeBag(materials);g.position.set(x,y,z);room.add(g);parent.attach(g);interactive(g,{kind:'asset',name:'Weekend companion',description:'Soft leather bag with stitched gussets and brass hardware. Drag or use the move arrows to restyle it.',origin:g.position.clone()});assets.push(g);}
-bag(.30,1.78,.125,rearShelves[1]);bag(.67,1.38,.125,rearShelves[0]);
-// Styled towel stacks; the measured aisle remains free of furniture.
-for(let i=0;i<3;i++){const towel=box(.26,.045,.21,.29,.925+i*.045,.19,linen);towel.userData.styling=true;chestFurniture.attach(towel);}
-const decorStart=room.children.length;addCountertopStyling(room);room.children.slice(decorStart).forEach(child=>{child.userData.styling=true;chestFurniture.attach(child);});
+for(const i of [0,2,4,6])for(const x of [.31,.906])shoe(x,shelfTops[i]+.006,1.98,'#aa8964');
+function bag(x,y,z,parent){const g=makeBag(materials);g.position.set(x,y,z);room.add(g);parent.attach(g);interactive(g,{kind:'asset',name:'Weekend companion',description:'Styling prop on the drawer cabinet.',origin:g.position.clone()});assets.push(g);}
+bag(cx,.9,.19,chestFurniture);
 const hemi=new THREE.HemisphereLight('#fff3dc','#8a8576',.85);scene.add(hemi);const sun=new THREE.DirectionalLight('#fff2df',2.1);sun.position.set(-2,5,4);sun.castShadow=true;sun.shadow.mapSize.set(innerWidth<650?512:1024,innerWidth<650?512:1024);sun.target.position.set(1,1,1);scene.add(sun.target);sun.shadow.camera.left=-2.5;sun.shadow.camera.right=2.5;sun.shadow.camera.top=2.5;sun.shadow.camera.bottom=-2.5;sun.shadow.camera.near=.5;sun.shadow.camera.far=12;sun.shadow.bias=-.00015;sun.shadow.normalBias=.003;scene.add(sun);
-const strip=new THREE.PointLight('#ffda9c',2.5,3,2);strip.position.set(1.65,2.1,1.15);scene.add(strip);upperFurniture.attach(strip);
-// Ground receives shadows beneath the room platform.
-// Storage cases and mirror joints follow the supplied finish reference, within
-// the existing measured shelves; they are styling props, not resized furniture.
-for(const z of [.80,1.48]){
- const storage=box(.27,.13,.25,1.835,2.297,z,mat('#33352e',.92));storage.userData.styling=true;upperFurniture.attach(storage);
- const pull=box(.006,.022,.09,1.697,2.297,z,mat('#6c6d60',.85));pull.userData.styling=true;upperFurniture.attach(pull);
-}
 for(const z of [ROOM.depth/3,ROOM.depth*2/3])mirrorFurniture.attach(box(.001,ROOM.height,.001,.009,ROOM.height/2,z,mat('#7c8278',.5,.4)));
 const person=createHumanScale({scene,furniture,assets,invalidate,onFocus:()=>view('perspective'),onAssetMoved:()=>{if(selected)selectionBox.setFromObject(selected);}});
 const ground=box(200,.025,200,1,-.15,1,mat('#e1dfd4'));ground.castShadow=false;
@@ -137,7 +126,7 @@ function toggleDrawer(){if(!selected||['garment','asset'].includes(selected.user
 $('#activate').onclick=toggleDrawer;
 $('#person-use-selected').onclick=()=>person.start(selected?.userData.kind==='garment'?'clothes':'shoes',selected);
 document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{if(!selected)return;const d=b.dataset.move;const p=selected.getWorldPosition(new THREE.Vector3());p.x+=d==='left'?-.1:d==='right'?.1:0;p.z+=d==='back'?-.1:d==='forward'?.1:0;moveSelected(p);});
-const views={perspective:{pos:[-3.3,4.1,5.9],target:[1.03,1.12,1.03]},interior:{pos:[.75,1.60,1.55],target:[.95,1.40,.45]},entrance:{pos:[.403,1.60,2.90],target:[.95,.95,.45]},return:{pos:[1.15,1.60,.68],target:[1.414,1.05,1.982]},plan:{pos:[1.01,6.5,1.09],target:[1.011,0,1.078]}};
+const views={perspective:{pos:[-3.3,4.1,5.9],target:[1.03,1.12,1.03]},interior:{pos:[.75,1.60,1.55],target:[.95,1.40,.45]},entrance:{pos:[ENTRANCE.x,1.60,2.90],target:[.95,.95,.45]},return:{pos:[1.15,1.60,.68],target:[.608,1.05,1.982]},plan:{pos:[1.01,6.5,1.09],target:[1.011,0,1.078]}};
 let cameraGoal=null,currentView='perspective';
 function setPresentation(name){
   currentView=name;
@@ -210,5 +199,5 @@ renderer.setAnimationLoop(now=>{
   }
 });
 // Expose serializable state for presentation QA without coupling tests to scene internals.
-window.showcase={getState:()=>({person:person.getState(),walkthrough:walkthrough.getState(),editor:editor.getState(),camera:camera.position.toArray(),roomSize:{width:finishedFloor.geometry.parameters.width,depth:finishedFloor.geometry.parameters.depth,height:ceiling.position.y-.035/2,entranceOpening:SHOE_RACK.x},layout:{hangingX:assets.find(a=>a.userData.kind==='garment').getWorldPosition(new THREE.Vector3()).x,chestX:drawers[0].getWorldPosition(new THREE.Vector3()).x,mirrorX:mirror.getWorldPosition(new THREE.Vector3()).x,shoeRackBounds:(()=>{const b=new THREE.Box3().setFromObject(shoeRack);return {min:b.min.toArray(),max:b.max.toArray(),levels:SHOE_RACK.levels};})()},frames,assets:assets.length,drawers:drawers.length,completed:[...completed],selected:selected?.userData.name,assetPositions:assets.map(a=>({kind:a.userData.kind,name:a.userData.name,position:a.getWorldPosition(new THREE.Vector3()).toArray()})),openDrawers:drawers.filter(d=>d.userData.open).length,renderCalls:renderer.info.render.calls}),floorScreen:(x,z)=>{camera.updateMatrixWorld(true);const p=new THREE.Vector3(x,0,z).project(camera),r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};},furnitureScreen:id=>editor.screenPoint(id),furnitureHandleScreen:axis=>editor.handleScreen(axis),objectScreen:(kind)=>{camera.updateMatrixWorld(true);const obj=kind==='garment'?assets.find(a=>a.userData.kind==='garment'&&a.getWorldPosition(new THREE.Vector3()).y>1.5):kind==='mirror'?mirror:assets.find(a=>a.userData.name==='The perfect pair'&&a.getWorldPosition(new THREE.Vector3()).y>1);const offset=kind==='garment'?new THREE.Vector3(0,-.38,.03):kind==='mirror'?new THREE.Vector3(0,.20,0):new THREE.Vector3(-.06,.065,0);const p=obj.localToWorld(offset).project(camera);const r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};},selectDrawer:()=>select(drawers[0]),selectAsset:()=>select(assets.find(a=>a.userData.name==='Weekend companion')),drawerScreen:()=>{camera.updateMatrixWorld(true);room.updateMatrixWorld(true);const p=drawers[3].localToWorld(new THREE.Vector3(0,0,.225)).project(camera);const r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}};
+window.showcase={getState:()=>({person:person.getState(),walkthrough:walkthrough.getState(),editor:editor.getState(),camera:camera.position.toArray(),roomSize:{width:finishedFloor.geometry.parameters.width,depth:finishedFloor.geometry.parameters.depth,height:ceiling.position.y-.035/2,entranceOpening:ENTRANCE.width},layout:{hangingX:assets.find(a=>a.userData.kind==='garment').getWorldPosition(new THREE.Vector3()).x,chestX:drawers[0].getWorldPosition(new THREE.Vector3()).x,mirrorX:mirror.getWorldPosition(new THREE.Vector3()).x,shoeRackBounds:(()=>{const b=new THREE.Box3().setFromObject(shoeRack);return {min:b.min.toArray(),max:b.max.toArray(),levels:SHOE_RACK.levels};})()},frames,assets:assets.length,drawers:drawers.length,completed:[...completed],selected:selected?.userData.name,assetPositions:assets.map(a=>({kind:a.userData.kind,name:a.userData.name,position:a.getWorldPosition(new THREE.Vector3()).toArray()})),openDrawers:drawers.filter(d=>d.userData.open).length,renderCalls:renderer.info.render.calls}),floorScreen:(x,z)=>{camera.updateMatrixWorld(true);const p=new THREE.Vector3(x,0,z).project(camera),r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};},furnitureScreen:id=>editor.screenPoint(id),furnitureHandleScreen:axis=>editor.handleScreen(axis),objectScreen:(kind)=>{camera.updateMatrixWorld(true);const obj=kind==='garment'?assets.find(a=>a.userData.kind==='garment'&&a.getWorldPosition(new THREE.Vector3()).y>1.5):kind==='mirror'?mirror:assets.find(a=>a.userData.name==='The perfect pair'&&a.getWorldPosition(new THREE.Vector3()).y>1);const offset=kind==='garment'?new THREE.Vector3(0,-.38,.03):kind==='mirror'?new THREE.Vector3(0,.20,0):new THREE.Vector3(-.06,.065,0);const p=obj.localToWorld(offset).project(camera);const r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};},selectDrawer:()=>select(drawers[0]),selectAsset:()=>select(assets.find(a=>a.userData.name==='Weekend companion')),drawerScreen:()=>{camera.updateMatrixWorld(true);room.updateMatrixWorld(true);const p=drawers[3].localToWorld(new THREE.Vector3(0,0,.225)).project(camera);const r=renderer.domElement.getBoundingClientRect();return {x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}};
 }
