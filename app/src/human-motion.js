@@ -69,12 +69,13 @@ export function createHumanMotion({root,model,source,furniture,assets,invalidate
  }
  function chooseReachableAsset(type,selected){
   const matches=object=>type==='clothes'?object?.userData.kind==='garment':object?.userData.name==='The perfect pair';
-  const objects=matches(selected)?[selected]:assets.filter(matches);
+  const selectedAsset=matches(selected)?selected:null;
+  const objects=selectedAsset?[selectedAsset]:assets.filter(matches);
   const obstacles=blockers(),candidates=[];
   for(const object of objects){
    const target=object.getWorldPosition(new THREE.Vector3());
    const reachHeight=type==='clothes'?1.05:1.16;
-   if(!selected&&Math.abs(target.y-reachHeight)>.24)continue;
+   if(!selectedAsset&&Math.abs(target.y-reachHeight)>.24)continue;
    const orientation=object.parent.getWorldQuaternion(new THREE.Quaternion());
    const sideRail=type==='clothes'&&object.userData.slide?.axis==='z';
    const forward=sideRail?new THREE.Vector3(1,0,0):new THREE.Vector3(0,0,type==='shoes'?-1:1);

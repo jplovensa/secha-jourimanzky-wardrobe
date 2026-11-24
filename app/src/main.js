@@ -53,7 +53,8 @@ const leftBacking=box(.07,ROOM.height,ROOM.depth,-.035,ROOM.height/2,ROOM.depth/
 box(2.022,.055,.015,1.011,.027,.012,wall);box(.015,.055,2.157,2.01,.027,1.078,wall);
 const mirrorStart=room.children.length;
 // Full-height left mirror; front and ceiling cut away for the presentation.
-const mirror=new Reflector(new THREE.PlaneGeometry(2.157,2.61),{color:0xc6ccc7,textureWidth:innerWidth<650?512:1024,textureHeight:innerWidth<650?512:1024,clipBias:.003});mirror.rotation.y=Math.PI/2;mirror.position.set(.006,1.305,1.0785);room.add(mirror);
+const mirrorResolution=innerWidth<650?384:512;
+const mirror=new Reflector(new THREE.PlaneGeometry(2.157,2.61),{color:0xc6ccc7,textureWidth:mirrorResolution,textureHeight:mirrorResolution,multisample:0,clipBias:.003});mirror.rotation.y=Math.PI/2;mirror.position.set(.006,1.305,1.0785);room.add(mirror);
 rod([.008,0,0],[.008,2.61,0],.003,black);rod([.008,0,2.157],[.008,2.61,2.157],.003,black);
 const mirrorFurniture=collectFurniture(mirrorStart,'mirror','Full left-wall mirror',[.006,ROOM.height/2,ROOM.depth/2]);
 const interactables=[],drawers=[],assets=[];
