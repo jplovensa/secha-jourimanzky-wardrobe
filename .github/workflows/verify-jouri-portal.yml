@@ -1,0 +1,23 @@
+name: Verify Jourimanzky portal in Chromium
+on:
+  push:
+    branches:
+      - verify/jouri-portal-browser-tests
+permissions:
+  contents: read
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run production browser tests
+        run: |
+          export CHROMIUM_PATH="$(node -p "require('playwright').chromium.executablePath()")"
+          npm run test:production
